@@ -21,6 +21,15 @@ public class ChatClient {
         }
     }
 
+    public void SyncInvoke(String userInput, String selection) {
+        ReceiveInvokeModelOnlyText receiveInvokeModel = new ReceiveInvokeModelOnlyText(jwtToken, userInput, selection);
+        try {
+            ResponseMessage = receiveInvokeModel.getResponseMessage();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void AsyncInvoke(String userInput) {
         ReceiveAsyncInvokeOnlyText asyncInvokeOnlyText = new ReceiveAsyncInvokeOnlyText(jwtToken, userInput);
         try {
@@ -30,8 +39,17 @@ public class ChatClient {
         }
     }
 
-    public void SSEInvoke(String userInput) {
-        ReceiveSSEInvokeOnlyText SSEInvokeOnlyText = new ReceiveSSEInvokeOnlyText(jwtToken, userInput);
+    public void AsyncInvoke(String userInput, String selection) {
+        ReceiveAsyncInvokeOnlyText asyncInvokeOnlyText = new ReceiveAsyncInvokeOnlyText(jwtToken, userInput, selection);
+        try {
+            ResponseMessage = asyncInvokeOnlyText.getReponse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void SSEInvoke(String userInput, String selection) {
+        ReceiveSSEInvokeOnlyText SSEInvokeOnlyText = new ReceiveSSEInvokeOnlyText(jwtToken, userInput, selection);
         try {
             ResponseMessage = SSEInvokeOnlyText.getGetElement();
         } catch (Exception e) {

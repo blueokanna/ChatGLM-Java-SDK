@@ -129,6 +129,7 @@ public class AsyncInvokeModel {
                         if (choice.has("content")) {
                             String message = choice.get("content").getAsString()
                                     .replaceAll("\"", "")
+                                    .replace("\\", "")
                                     .replace("\\n\\n", "\n");
                             message = convertUnicodeEmojis(message);
                             getMessage = message;
@@ -141,7 +142,6 @@ public class AsyncInvokeModel {
         }
         return getMessage;
     }
-
 
     private String convertUnicodeEmojis(String input) {
         String regex = "\\\\u[0-9a-fA-F]{4}";

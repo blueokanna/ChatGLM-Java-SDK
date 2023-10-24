@@ -100,6 +100,5 @@ public final class CustomJWT {
                 throw new RuntimeException("Failed to fetch NTP time", e);
             }
         }
-
     }
 }
