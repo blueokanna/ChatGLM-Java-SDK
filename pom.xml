@@ -5,6 +5,9 @@
     <artifactId>bluechatglm</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
+    <name>blueokanna</name>
+    <description>Custom ChatGLM-Large Language Model Chat Java SDK</description>
+    <url>https://github.com/blueokanna/ChatGLM-Java-SDK</url>
     <dependencies>
         <dependency>
             <groupId>commons-net</groupId>
@@ -22,93 +25,11 @@
             <version>3.13.0</version>
         </dependency>
     </dependencies>
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>actable</distribution>
-        </license>
-    </licenses>
-    <developers>
-        <developer>
-            <name>blueokanna</name>
-            <id>blueokanna</id>
-            <email>blueokanna@gmail.com</email>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+8</timezone>
-        </developer>
-    </developers>
-    <scm>
-        <url>https://github.com/blueokanna/ChatGLM-Java-SDK.git</url>
-        <connection>https://github.com/blueokanna/ChatGLM-Java-SDK.git</connection>
-    </scm>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.13</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.0</version>
-                <configuration>
-                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>github</id>
+            <name>GitHub blueokanna Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/blueokanna/ChatGLM-Java-SDK</url>
         </repository>
     </distributionManagement>
 
