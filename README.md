@@ -2,6 +2,15 @@
 > 此项目是由 **Java** 的 **JDK17** 的长期版本开发
 ----
 
+**Java Maven Dependency (BlueChatGLM)调用**
+```
+<dependency>
+  <groupId>top.pulselink</groupId>
+  <artifactId>bluechatglm</artifactId>
+  <version>0.0.1</version>
+</dependency>
+```
+
 ## 1.使用 NTP 服务器时间
 它通过互联网或局域网上的时间服务器来提供高精度，高安全的时间信息，确保所有设备都使用相同的时间是关键的。这里的应用是对于 `JWT` 验证使用
 ```
