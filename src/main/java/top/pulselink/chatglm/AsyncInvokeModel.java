@@ -130,6 +130,7 @@ public class AsyncInvokeModel {
                             String message = choice.get("content").getAsString()
                                     .replaceAll("\"", "")
                                     .replace("\\", "")
+                                    .replace("\\nn", "\n")
                                     .replace("\\n\\n", "\n");
                             message = convertUnicodeEmojis(message);
                             getMessage = message;

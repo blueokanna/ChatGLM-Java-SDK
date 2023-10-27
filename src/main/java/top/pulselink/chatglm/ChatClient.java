@@ -1,7 +1,5 @@
 package top.pulselink.chatglm;
 
-import java.util.Scanner;
-
 public class ChatClient {
 
     private static APIKeys apiKeys;

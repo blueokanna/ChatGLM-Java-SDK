@@ -92,6 +92,7 @@ public class InvokeModel {
                             String Message = choice.get("content").getAsString();
                             Message = Message.replaceAll("\"", "");
                             Message = Message.replace("\\n\\n", "\n");
+                            Message = Message.replace("\\nn", "\n");
                             Message = Message.replace("\\", "");
                             Message = convertUnicodeEmojis(Message);
                             contentMessage = Message;
