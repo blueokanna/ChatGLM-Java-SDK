@@ -1,18 +1,23 @@
 # 基于 Java 的自定义智谱大模型开放接口 ChatGLM-Java-SDK
+>
 > 此项目是由 **Java** 的 **JDK17** 的长期版本开发
 ----
 
 **Java Maven Dependency (BlueChatGLM)调用**
+> 请使用 **Java Maven** 调用这个库✔️，**Java Ant** 使用这个似乎会报错❌
+
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
 </dependency>
 ```
 
 ## 1.使用 NTP 服务器时间
+
 它通过互联网或局域网上的时间服务器来提供高精度，高安全的时间信息，确保所有设备都使用相同的时间是关键的。这里的应用是对于 `JWT` 验证使用
+
 ```
 //获取网络时间协议服务器（NTP Server）
 
@@ -36,16 +41,19 @@
         }
     }
 ```
+
 ---
+
 ## 2. 易于使用的 SDK
 
 **本项目唯一一个不变的量：`algorithm = HmacSHA256`**
 
-### 2.1 调用本开发工具（小白友好型）
-> 默认使用的是 **ChatGLM_Std**
-相对于资深开发者来说，这个 **SDK** 的调用难度较低。以下的三个示例是直接输出 **ChatGLM** 的回答内容：
+### 2.1 调用并使用 Maven 库
+>
+> 相对于很多人来说，使用这个 **SDK** 的难度较低🤩。以下的三个示例是使用 **Scanner** 输入你的问题，控制台将输出 **ChatGLM** 回答：
 
 调用**SSE请求**，示例代码如下 `（此示例对英文输出比较友好，中文输出有问题）`：
+
 ```
 public class Main{
     public static void main(String[] args) {
@@ -61,7 +69,6 @@ public class Main{
     }
 }
 ```
-
 
 调用**异步请求**，示例代码如下：
 
@@ -81,7 +88,6 @@ public class Main{
 }
 ```
 
-
 调用**同步请求**，示例代码如下：
 
 ```
@@ -100,46 +106,21 @@ public class Main{
 }
 ```
 
-### 2.2 资深开发者
+### 2.2 资深开发者👨🏼‍💻
 
 对于资深开发者，目前此版本只是做了一个较为简单的开发，还有 `temperature` , `top_p` , `incremental` , `return_type` 等参数没有添加到这一次的开发。后期的话这边也会跟进开发的脚步，当然这边也是非常希望其他开发者对本项目提供技术支持！在这里先感谢各位了！
 
-
-
-对于生成输出的模型可以自定义，比如想要使用Pro模型的**异步请求**，以下是被调用的代码的展示：
-```
-public ReceiveAsyncInvokeOnlyText(String token, String message, String selection) {
-        String selections = null;
-        switch (selection) {      //输入 Pro 则使用的是 Chatglm_Pro 的异步请求
-            case "Pro" ->
-                selections = chat_pro;
-            case "Standard" ->    //输入 Standard 则是 Chatglm_std 的异步请求
-                selections = chat_std;
-            case "Lite" ->        //输入 lite 则是 Chatglm_lite 的异步请求
-                selections = chat_lite;
-            default -> {
-            }
-        }
-        AsyncInvokeapiUrl = AsyncInvokeapiUrl + selections;
-        sendRequestAndWait(token, message, AsyncInvokeapiUrl);
-    }
-```
-
-**主方法初始化ChatClient：(异步举例)**
-```
-ChatClient chats = new ChatClient(YOUR_API);    //初始化 ChatClient
-chats.AsyncInvoke(userInput, "Pro");            //选择自定义的模型类型（这里是选择异步的Pro）
-System.out.println(chats.getResponseMessage()); //输出内容
-```
+⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，官方已经将其调用的地址修改掉了，无法使用 **0.0.1**的版本，请尽快转移到 **0.0.2** 的版本上
 ---
 
 ## 3.项目介绍
 
-### **CustomJWT** 是对于这个项目的自定制而写的，后期会继续开发，拓展这个项目。
+### **CustomJWT** 是对于这个项目的自定制而写的，后期会继续开发，拓展这个项目
 
 根据 **JWT.io** 这个网站进行了解以及原理的学习，对于这个项目的**JWT** 验证，**Java**实现起来还是较容易实现的，其中使用的部分是 `Base64Url` 而不是常规的 `Base64`
 
 **编码 Base64Url** 使用的编辑如下：
+
 ```
 private String encodeBase64Url(byte[] data) {
         String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data)  //将输入的内容转换成 Base64Url
@@ -148,8 +129,10 @@ private String encodeBase64Url(byte[] data) {
         return base64url;             //返回 base64url
     }
 ```
+
 ----
 创建 **JWT**，实现 **Header** 验证：
+
 ```
 protected String createJWT() {
         String encodedHeader = encodeBase64Url(header.getBytes());
@@ -161,8 +144,10 @@ protected String createJWT() {
         return toSign + "." + calculatedSignature;
     }
 ```
+
 ----
 验证 **JWT** 签名部分是否与输出的结果一致：
+
 ```
 protected boolean verifyJWT(String jwt) {
         jwt = jwt.trim();
@@ -185,7 +170,8 @@ protected boolean verifyJWT(String jwt) {
  
 ```
 
-### 请求调用
+### 请求调用🌐
+
 在**同步请求**和**SSE请求**中使用的请求方式如下（在**Header**里面）：
 
 ```
@@ -195,18 +181,23 @@ connection.setRequestProperty("Accept", "application/json");        //同步请�
 connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 connection.setRequestProperty("Authorization", "Bearer " + token);
 ```
+
 使用**gson**的库，让**Payload**写入**JSON**里面
+
 ```
 JsonObject payloadMessage = new JsonObject();
 payloadMessage.addProperty("prompt", message); //添加属性
 ```
+
 > 一般来说 prompt -> message 就可以了，如果想要添加其他部分的属性这里也可以添加，比如添加关于**temperature**，**top_p**：
+
 ```
 payloadMessage.addProperty("temperature", 0.6);
 payloadMessage.addProperty("top_p", 0.7);
 ```
 
 #### SSE 流式传输模型（SSEInvokeModel：目前不完善，存在一定的BUG，不推荐使用）
+
 这里使用的是一个对每一 **SSE 流式** 的生成，一般获取得到的内容包含`：event`,`request_id`以及`data`。对于`add`后的数据，拼接在一起，这里使用队列的方法排序：
 
 ```
@@ -221,10 +212,10 @@ payloadMessage.addProperty("top_p", 0.7);
                 String key = pair[0].trim();
                 String value = pair[1].trim();
                 eventData.addProperty(key, value);
+            }
 ```
 
-
-对于 `meta`来说，这个是可以后期添加的，代码示例如下： 
+对于 `meta`来说，这个是可以后期添加的，代码示例如下：
 
 ```
         if (line.startsWith("data: ")) {  // (line = reader.readLine()) != null 传入
@@ -260,6 +251,7 @@ payloadMessage.addProperty("top_p", 0.7);
 #### 异步请求传输模型（AsyncInvokeModel：推荐使用，速度快）
 
 这里采用的是`HTTPRequest`方法，来接收消息：
+
 ```
 HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
@@ -269,7 +261,9 @@ HttpRequest request = HttpRequest.newBuilder()
                 .POST(HttpRequest.BodyPublishers.ofString("{\"prompt\":\"" + message + "\"}"))  //Payload 部分 -> 对应用户输入的信息
                 .build();
 ```
+
 整体使用的是异步发送信息，这样的好处是可以减少线程阻塞，这里的`code`和`msg`是获取错误消息。当你得到一个`request_id` 的时候，再进行查询
+
 ```
                     if (response.statusCode() == 200) {      //当得到响应值是 200 的时候，输出一个异步请求的接口相应参数
                         processResponseData(response.body());
@@ -286,7 +280,9 @@ HttpRequest request = HttpRequest.newBuilder()
                         }
                     }        
 ```
+
 当你得到需要的**Task_id**的时候，进行**GET**请求查询(部分代码)：
+
 ```
                 .....略 .sendAsync(HttpRequest.newBuilder()
                         .uri(URI.create(checkUrl + TaskID)) //添加Taskid到查询地址
@@ -296,8 +292,11 @@ HttpRequest request = HttpRequest.newBuilder()
                         .GET()
                         .build(), HttpResponse.BodyHandlers.ofString())
                 .thenCompose(response -> {......略
+                )};
 ```
+
 最后通过**JSON**的提取，提取代码示例为：
+
 ```
 JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
             if (jsonResponse.has("data")) {
@@ -320,9 +319,11 @@ JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject()
 ```
 
 #### 同步请求传输模型（InvokeModel：推荐使用，速度较快）
+
 相对于**SSE流式**来说，这个**同步请求**还算不错,运行的时候不会出现字符缺失的 **BUG**，速度相比于**异步请求**也不差，同步的缺点就是请求量过大可能会阻塞线程（`单线程`）
 
 这里直接说明关于处理信息这一块，这一块就是解析**JSON**也没有其他的东西了，示例代码：
+
 ```
 if (isJsonResponse(connection)) {
             JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
@@ -343,13 +344,15 @@ if (isJsonResponse(connection)) {
                     }
                 }
             }
+        }
 ```
+
 > 总体下来，介绍本项目三种请求方式应该还是相对简单，目前的 **BUG** 也只能尽量去修，也希望各路大神的对这个项目的支援！再次感谢！
 ---
 
 ## 4.结语
-> 感谢大家能打开我的项目，虽然我写的不是很好，但是我也在努力开发这个项目，当你问我为什么不使用官方的项目的时候，我想说其实这个也是在挑战自我（重复造轮子），官方的开发固然比我个人开发完善许多，但是我还是会继续坚持下去，当使用的效率好过官方的时候，我认为这个项目就算是一个成功的学习经验。这个项目我会一直更新下去。同时也希望越来越多人能一起参与进来，感谢你能看到最后！😆👏
+>
+> 感谢大家能打开我的项目，虽然我写的不是很好，但是我也在努力开发这个项目，当你问我为什么不使用官方的项目的时候，我想说其实这个也是在挑战自我（重复造轮子），官方的开发固然比我个人开发完善许多，但是我还是会继续坚持下去，当使用的效率好过官方的时候，我认为这个项目就算是一个成功的学习经验。这个项目我会一直更新下去。同时也希望越来越多人能一起参与进来🚀，感谢你能看到最后！😆👏
 
 ----
-**最后的最后感恩 gson 的 jar 包开发人员以及 Apache 的 jar 包开发人员**
-
+**最后的最后感恩 gson 的 jar 包开发人员以及 Apache 的 jar 包开发人员**👩‍💻👨‍💻
