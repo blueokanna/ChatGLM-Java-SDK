@@ -6,7 +6,7 @@
     <version>0.0.2</version>
     <packaging>jar</packaging>
     <name>blueokanna</name>
-    <description>Custom ChatGLM-Large Language Model Chat Java SDK</description>
+    <description>ChatGLM3 Large Language Model Chat Java SDK</description>
     <url>https://github.com/blueokanna/ChatGLM-Java-SDK</url>
     <licenses>
         <license>
