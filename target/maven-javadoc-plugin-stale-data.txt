@@ -1,0 +1,48 @@
+@options
+@packages
+-classpath
+'C:/Users/blueo/.m2/repository/commons-net/commons-net/3.10.0/commons-net-3.10.0.jar;C:/Users/blueo/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar;C:/Users/blueo/.m2/repository/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'17'
+-sourcepath
+'E:/Java_Project/ChatGLM-Java-SDK/src/main/java;E:/Java_Project/ChatGLM-Java-SDK/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2023. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'E:/Java_Project/ChatGLM-Java-SDK/target/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'blueokanna 0.0.2 API'
+-use
+-version
+-windowtitle
+'blueokanna 0.0.2 API'
+top.pulselink.chatglm
+C:\Users\blueo\.m2\repository\commons-net\commons-net\3.10.0\commons-net-3.10.0.jar = 1697897160624
+C:\Users\blueo\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar = 1697919387088
+C:\Users\blueo\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar = 1697957551330
+E:\Java_Project\ChatGLM-Java-SDK\src\main\java = 1698220901055
+E:\Java_Project\ChatGLM-Java-SDK\target\generated-sources\annotations = 1698416571210
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\allclasses-index.html = 1698416574496
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\allpackages-index.html = 1698416574498
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\element-list = 1698416574440
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\help-doc.html = 1698416574519
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\index-all.html = 1698416574514
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\index.html = 1698416574516
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\jquery-ui.overrides.css = 1698416574529
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\member-search-index.js = 1698416574502
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\module-search-index.js = 1698416574500
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\overview-tree.html = 1698416574482
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\package-search-index.js = 1698416574500
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\script.js = 1698416574522
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\search.js = 1698416574523
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\stylesheet.css = 1698416574521
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\tag-search-index.js = 1698416574502
+E:\Java_Project\ChatGLM-Java-SDK\target\apidocs\type-search-index.js = 1698416574501

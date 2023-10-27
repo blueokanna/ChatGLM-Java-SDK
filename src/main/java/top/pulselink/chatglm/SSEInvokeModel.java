@@ -41,7 +41,7 @@ public class SSEInvokeModel {
                 writer.write(payloadMessage.toString());
                 writer.flush();
             } catch (IOException ex) {
-                ex.printStackTrace();
+                ex.getMessage();
             }
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
