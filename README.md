@@ -1,4 +1,4 @@
-# Third Party Customisation ChatGLM-Java-SDK
+# Zhipu AI Large Model Custom ChatGLM-Java-SDK - [中文文档](https://github.com/AstralQuanta/ChatGLM-Java-SDK/blob/main/README_zh.md)
 >
 > ChatGLM-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
 ----
