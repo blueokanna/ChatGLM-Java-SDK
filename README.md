@@ -1,11 +1,11 @@
-# 基于 Java 的自定义智谱大模型开放接口 ChatGLM-Java-SDK
+# Third Party Customisation ChatGLM-Java-SDK
 >
-> 此项目是由 **Java** 的 **JDK17** 的长期版本开发
+> ChatGLM-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
 ----
-## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，官方已经将其调用的地址修改掉了，无法使用 **0.0.1**的版本，请尽快转移到 **0.0.2** 的版本上
+## ⚠️Caution😟！The original **0.0.1** is no longer available, the official address of its call has been changed, it is not possible to use **0.0.1** version, please move to **0.0.2** version as soon as possible.
 
-**Java Maven Dependency (BlueChatGLM)调用**
-> 请使用 **Java Maven** 调用这个库✔️，**Java Ant** 使用这个似乎会报错❌
+**Java Maven Dependency (BlueChatGLM)**
+> Please use **Java Maven** Library✔️. **Java Ant** Using this seems to give an error.❌
 
 ```
 <dependency>
@@ -15,27 +15,27 @@
 </dependency>
 ```
 
-## 1.使用 NTP 服务器时间
+## 1.Using NTP Server Time
 
-它通过互联网或局域网上的时间服务器来提供高精度，高安全的时间信息，确保所有设备都使用相同的时间是关键的。这里的应用是对于 `JWT` 验证使用
+It provides highly accurate and secure time information via time servers on the Internet or LAN, and it is critical to ensure that all devices use the same time. The application here is for `JWT` authentication using the
 
 ```
-//获取网络时间协议服务器（NTP Server）
+//Get Network Time Protocol Server（NTP Server）
 
     protected long receiveTime() {
-        long currentTime = System.currentTimeMillis(); //获取当前系统的毫秒级时间戳。
-        if (currentTime - lastUpdateTime < 60000) { //如果时间差小于60秒，就返回上一次从NTP服务器获取的时间
+        long currentTime = System.currentTimeMillis(); //Gets the millisecond timestamp of the current system.
+        if (currentTime - lastUpdateTime < 60000) { //If the time difference is less than 60 seconds, return the last time obtained from the NTP server
             return lastServerTime;
         } else {
             try {
-                NTPUDPClient timeClient = new NTPUDPClient(); //创建一个NTPUDPClient对象，用于与NTP服务器通信。
+                NTPUDPClient timeClient = new NTPUDPClient(); //Create an NTPUDPClient object to communicate with the NTP server.
                 timeClient.setDefaultTimeout(timeout);
-                InetAddress inetAddress = InetAddress.getByName(ntpServer);  通过提供的 ntpServer 字符串来获取NTP服务器的IP地址。
-                TimeInfo timeInfo = timeClient.getTime(inetAddress);  //提取服务器时间信息
+                InetAddress inetAddress = InetAddress.getByName(ntpServer);  //Get the IP address of the NTP server using the provided ntpServer string.
+                TimeInfo timeInfo = timeClient.getTime(inetAddress);  //Extracting server time information
                 long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
-                lastServerTime = serverTime; //将新获取的服务器时间存储在 lastServerTime 变量中，以备将来使用。
-                lastUpdateTime = currentTime;  //将当前时间存储在 lastUpdateTime 变量中，以备将来的比较。
-                return serverTime; //返回从NTP服务器获取的时间
+                lastServerTime = serverTime; //Stores the newly acquired server time in the lastServerTime variable for future use.
+                lastUpdateTime = currentTime;  //Stores the current time in the lastUpdateTime variable for future comparison.
+                return serverTime; //Returns the time obtained from the NTP server
             } catch (Exception e) {
                 throw new RuntimeException("Failed to fetch NTP time", e);
             }
@@ -45,108 +45,108 @@
 
 ----
 
-## 2. 易于使用的 SDK
+## 2. Easy-to-use SDK
 
-**本项目唯一一个不变的量：`algorithm = HmacSHA256`**
+**The only constant quantity in this project：`algorithm = HmacSHA256`**
 
-### 2.1 调用并使用 Maven 库
+### 2.1 Calling and Using the Maven Library
 >
-> 相对于很多人来说，使用这个 **SDK** 的难度较低🤩。以下的三个示例是使用 **Scanner** 输入你的问题，控制台将输出 **ChatGLM** 回答：
+> Using this project **SDK** is less difficult 🤩. The following three examples use **Scanner** to enter your question and the console will output **ChatGLM** to answer it：
 
-调用**SSE请求**，示例代码如下 `（此示例对英文输出比较友好，中文输出有问题）`：
+Call **SSE request**, the sample code is as follows `(This example is more friendly to English output, Chinese output has problems)`:
 
 ```
 public class Main{
     public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //替换成自己的 API Key
+        String apiKeyss = "Your_API_Key"; //Replace the API Key with your own
 
-        Scanner scan = new Scanner(System.in); //利用 Scanner 输入内容
+        Scanner scan = new Scanner(System.in); //Entering Content with Scanner
         while (scan.hasNext()) {
              String userInput = scan.nextLine();
-             ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
-             chats.SSEInvoke(userInput);                    //将你输入的问题赋值给 SSE 请求的
-             System.out.println(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+             chats.SSEInvoke(userInput);                       //Assign the question you entered to the SSE request
+             System.out.println(chats.getResponseMessage());   //Print out ChatGLM's response
         }
     }
 }
 ```
 
-调用**异步请求**，示例代码如下：
+Call **asynchronous request**, sample code is as follows:
 
 ```
 public class Main{
     public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //替换成自己的 API Key
+        String apiKeyss = "Your_API_Key"; //Replace the API Key with your own
 
-        Scanner scan = new Scanner(System.in); //利用 Scanner 输入内容
+        Scanner scan = new Scanner(System.in); //Entering Content with Scanner
         while (scan.hasNext()) {
              String userInput = scan.nextLine();
-             ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
-             chats.AsyncInvoke(userInput);                    //将你输入的问题赋值给异步请求的
-             System.out.println(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+             chats.AsyncInvoke(userInput);                    //Assign the question you entered to the asynchronous request
+             System.out.println(chats.getResponseMessage());  //Print out ChatGLM's response
         }
     }
 }
 ```
 
-调用**同步请求**，示例代码如下：
+Call **synchronisation request**, sample code is as follows:
 
 ```
 public class Main{
     public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //替换成自己的 API Key
+        String apiKeyss = "Your_API_Key"; //Replace the API Key with your own
 
-        Scanner scan = new Scanner(System.in); //利用 Scanner 输入内容
+        Scanner scan = new Scanner(System.in); //Entering Content with Scanner
         while (scan.hasNext()) {
              String userInput = scan.nextLine();
-             ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
-             chats.SyncInvoke(userInput);                    //将你输入的问题赋值给同步请求的
-             System.out.println(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+             chats.SyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
+             System.out.println(chats.getResponseMessage());  //Print out ChatGLM's response
         }
     }
 }
 ```
 
-### 2.2 资深开发者👨🏼‍💻
+### 2.2 Senior Developer👨🏼‍💻
 
-对于资深开发者，目前此版本只是做了一个较为简单的开发，还有 `temperature` , `top_p` , `incremental` , `return_type` 等参数没有添加到这一次的开发。后期的话这边也会跟进开发的脚步，当然这边也是非常希望其他开发者对本项目提供技术支持！在这里先感谢各位了！
+For senior developers, this version is only a simple development, there are `temperature`, `top_p`, `incremental`, `return_type` and other parameters have not been added to this development. We will follow up with the development in the future, and of course we would like to ask other developers to provide technical support for this project! Thank you in advance!
 
 ----
 
-## 3.项目介绍
+## 3.Project Description
 
-### **CustomJWT** 是对于这个项目的自定制而写的，后期会继续开发，拓展这个项目
+### **CustomJWT** is for the project's self-customisation and write, later will continue to develop and expand the project!
 
-根据 **JWT.io** 这个网站进行了解以及原理的学习，对于这个项目的**JWT** 验证，**Java**实现起来还是较容易实现的，其中使用的部分是 `Base64Url` 而不是常规的 `Base64`
+According to **JWT.io** this website for understanding and principle of learning, for this project of **JWT** validation, **Java** implementation is easier to achieve, which uses the part of the `Base64Url` instead of the conventional `Base64`.
 
-**编码 Base64Url** 使用的编辑如下：
+**Encoding Base64Url** used by the editor is as follows:
 
 ```
 private String encodeBase64Url(byte[] data) {
-        String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data)  //将输入的内容转换成 Base64Url
-                .replace("+", "-")    //这里的加号需要替换成-
-                .replace("/", "_");   //这里的斜杠替换成_
-        return base64url;             //返回 base64url
+        String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data) //convert the input to Base64Url
+                .replace("+", "-")  //The plus sign here needs to be replaced with -.
+                .replace("/", "_"); //replace the slash here with a _.
+        return base64url; // return base64url
     }
 ```
 
 ----
-创建 **JWT**，实现 **Header** 验证：
+Creates **JWT** that implements **Header** validation:
 
 ```
 protected String createJWT() {
         String encodedHeader = encodeBase64Url(header.getBytes());
-        String encodedPayload = encodeBase64Url(payload.getBytes());
-        String toSign = encodedHeader + "." + encodedPayload;
+        String encodedPayload = encodeBase64Url(payload.getBytes()); String encodedPayload = encodeBase64Url(payload.getBytes());
+        String toSign = encodedHeader + "." + encodedPayload.
 
-        byte[] signatureBytes = generateSignature(toSign, secret, algorithm);
-        String calculatedSignature = encodeBase64Url(signatureBytes);
-        return toSign + "." + calculatedSignature;
+        
+        String calculatedSignature = encodeBase64Url(signatureBytes); return toSign + ".".
+        return toSign + "." + calculatedSignature; }
     }
 ```
 
 ----
-验证 **JWT** 签名部分是否与输出的结果一致：
+Verify that the **JWT** signature section matches the output:
 
 ```
 protected boolean verifyJWT(String jwt) {
@@ -170,42 +170,42 @@ protected boolean verifyJWT(String jwt) {
  
 ```
 
-### 请求调用🌐
+### request a calling🌐
 
-在**同步请求**和**SSE请求**中使用的请求方式如下（在**Header**里面）：
+The request methods used in **Synchronous Request** and **SSE Request** are as follows (inside **Header**):
 
 ```
 connection.setRequestMethod("POST");
-connection.setRequestProperty("Accept", "application/json");        //同步请求
-//connection.setRequestProperty("Accept", "text/event-stream");    //SSE请求
+connection.setRequestProperty("Accept", "application/json");        //synchronisation request
+//connection.setRequestProperty("Accept", "text/event-stream");    //SSE request
 connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 connection.setRequestProperty("Authorization", "Bearer " + token);
 ```
 
-使用**gson**的库，让**Payload**写入**JSON**里面
+Use the **gson** library to make **Payload** write to **JSON**.
 
 ```
 JsonObject payloadMessage = new JsonObject();
-payloadMessage.addProperty("prompt", message); //添加属性
+payloadMessage.addProperty("prompt", message); //Adding Properties
 ```
 
-> 一般来说 prompt -> message 就可以了，如果想要添加其他部分的属性这里也可以添加，比如添加关于**temperature**，**top_p**：
+> Generally prompt -> message is enough, if you want to add other parts of the attributes can also be added here, such as adding about **temperature**, **top_p**:
 
 ```
 payloadMessage.addProperty("temperature", 0.6);
 payloadMessage.addProperty("top_p", 0.7);
 ```
 
-#### SSE 流式传输模型（SSEInvokeModel：目前不完善，存在一定的BUG，不推荐使用）
+#### SSE Streaming Transfer Model (SSEInvokeModel: currently imperfect, with some bugs, not recommended)
 
-这里使用的是一个对每一 **SSE 流式** 的生成，一般获取得到的内容包含`：event`,`request_id`以及`data`。对于`add`后的数据，拼接在一起，这里使用队列的方法排序：
+What is used here is a per **SSE streaming** generation, which generally fetches the resulting content containing `:event` , `request_id` and `data`. For the data after `add`, it is spliced together and here it is sorted using the queue method:
 
 ```
-//队列： BlockingQueue<String> resultQueue = new ArrayBlockingQueue<>(2000);
-//将你的'Content' 数据加入队列：resultQueue.offer(dataBuilder.toString());
+//Queue: BlockingQueue<String> resultQueue = new ArrayBlockingQueue<>(2000);
+//Add your 'Content' data to the queue: resultQueue.offer(dataBuilder.toString());
 
 /*
-分割（data：Content）
+data：Content）
 */
             String[] pair = keyValue.split(":");
             if (pair.length == 2) {
@@ -215,28 +215,28 @@ payloadMessage.addProperty("top_p", 0.7);
             }
 ```
 
-对于 `meta`来说，这个是可以后期添加的，代码示例如下：
+For `meta`, you can add it later, the code example is as follows:
 
 ```
-        if (line.startsWith("data: ")) {  // (line = reader.readLine()) != null 传入
+        if (line.startsWith("data: ")) {  // (line = reader.readLine()) != null
             String data = line.substring(6).trim();
             JsonObject eventData = parseEventData(data);
 
             String eventType = eventData.has("event") ? eventData.get("event").getAsString() : null;
             String eventDataString = eventData.has("data") ? eventData.get("data").getAsString() : null;
 
-            if ("add".equals(eventType)) {          //add事件
+            if ("add".equals(eventType)) {          //add event
                 System.out.println("Add Event: " + eventDataString);
             } else if ("error".equals(eventType) || "interrupted".equals(eventType)) {
                 System.out.println("Error or Interrupted Event: " + eventDataString);
             } else if ("finish".equals(eventType)) {
                 System.out.println("Finish Event: " + eventDataString);
 
-                if (eventData.has("meta")) {        // meta数据
+                if (eventData.has("meta")) {        // meta data
                     JsonObject meta = eventData.getAsJsonObject("meta");
                     System.out.println("Meta: " + meta.toString());
 
-                    if (meta.has("usage")) {         //使用量（Token数量）的输出
+                    if (meta.has("usage")) {         //Output of usage (number of Token)
                         JsonObject usage = meta.getAsJsonObject("usage");
                         System.out.println("Usage: " + usage.toString());
                         System.out.println("Prompt Tokens: " + usage.get("prompt_tokens").getAsInt());
@@ -248,29 +248,29 @@ payloadMessage.addProperty("top_p", 0.7);
         }
 ```
 
-#### 异步请求传输模型（AsyncInvokeModel：推荐使用，速度快）
+#### Asynchronous Request Transfer Model (AsyncInvokeModel: recommended)
 
-这里采用的是`HTTPRequest`方法，来接收消息：
+The `HTTPRequest` method is used here to receive the message:
 
 ```
 HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
-                .header("Accept", "application/json")  //请求头
+                .header("Accept", "application/json")  //request header
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .header("Authorization", "Bearer " + token)
-                .POST(HttpRequest.BodyPublishers.ofString("{\"prompt\":\"" + message + "\"}"))  //Payload 部分 -> 对应用户输入的信息
+                .POST(HttpRequest.BodyPublishers.ofString("{\"prompt\":\"" + message + "\"}"))  //Payload section -> corresponds to the information entered by the user
                 .build();
 ```
 
-整体使用的是异步发送信息，这样的好处是可以减少线程阻塞，这里的`code`和`msg`是获取错误消息。当你得到一个`request_id` 的时候，再进行查询
+The overall use is to send messages asynchronously, which has the advantage of reducing thread blocking, where `code` and `msg` are getting error messages. When you get a `request_id`, then query the
 
 ```
-                    if (response.statusCode() == 200) {      //当得到响应值是 200 的时候，输出一个异步请求的接口相应参数
+                    if (response.statusCode() == 200) {      //When the response value is 200, output the corresponding parameters of the interface for an asynchronous request.
                         processResponseData(response.body());
                         return CompletableFuture.completedFuture(response.body());
                     } else {
 
-                        JsonObject errorResponse = JsonParser.parseString(response.body()).getAsJsonObject(); //不是 200，则放回错误的信息
+                        JsonObject errorResponse = JsonParser.parseString(response.body()).getAsJsonObject(); //is not 200, an error message is returned
                         if (errorResponse.has("code") && errorResponse.has("msg")) {
                             int code = errorResponse.get("code").getAsInt();
                             String msg = errorResponse.get("msg").getAsString();
@@ -281,65 +281,65 @@ HttpRequest request = HttpRequest.newBuilder()
                     }        
 ```
 
-当你得到需要的**Task_id**的时候，进行**GET**请求查询(部分代码)：
+When you get the **Task_id** you need, make a **GET** request query (part of the code):
 
 ```
-                .....略 .sendAsync(HttpRequest.newBuilder()
-                        .uri(URI.create(checkUrl + TaskID)) //添加Taskid到查询地址
+                ..... .sendAsync(HttpRequest.newBuilder()
+                        .uri(URI.create(checkUrl + TaskID)) //Add Taskid to the query address
                         .header("Accept", "application/json")
                         .header("Content-Type", "application/json;charset=UTF-8")
                         .header("Authorization", "Bearer " + token)
                         .GET()
                         .build(), HttpResponse.BodyHandlers.ofString())
-                .thenCompose(response -> {......略
+                .thenCompose(response -> {......
                 )};
 ```
 
-最后通过**JSON**的提取，提取代码示例为：
+Finally the extraction by **JSON**, the sample extraction code is:
 
 ```
 JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
             if (jsonResponse.has("data")) {
-                JsonObject data = jsonResponse.getAsJsonObject("data");   //data 里面获取
+                JsonObject data = jsonResponse.getAsJsonObject("data");   //Getting inside data
                 if (data.has("choices")) {
-                    JsonArray choices = data.getAsJsonArray("choices");  //choices里面获取
+                    JsonArray choices = data.getAsJsonArray("choices");  //choices to get the message
                     if (!choices.isEmpty()) {
-                        JsonObject choice = choices.get(0).getAsJsonObject(); //从第 0 个开始
+                        JsonObject choice = choices.get(0).getAsJsonObject(); //Starting from 0
                         if (choice.has("content")) {
                             String message = choice.get("content").getAsString()
                                     .replaceAll("\"", "")
                                     .replace("\\", "")
                                     .replace("\\n\\n", "\n");
                             message = convertUnicodeEmojis(message);
-                            getMessage = message;                      //赋值message，提供外部链接
+                            getMessage = message;                      //Assign message, provide external link
                         }
                     }
                 }
             }
 ```
 
-#### 同步请求传输模型（InvokeModel：推荐使用，速度较快）
+#### Synchronised request transfer model (InvokeModel: recommended)
 
-相对于**SSE流式**来说，这个**同步请求**还算不错,运行的时候不会出现字符缺失的 **BUG**，速度相比于**异步请求**也不差，同步的缺点就是请求量过大可能会阻塞线程（`单线程`）
+Compared to **SSE streaming**, this **synchronous request** is quite good, running without missing characters **BUG**, speed compared to **asynchronous request** is not bad, the disadvantage of synchronous is that the amount of requests is too large may block the thread (`single-threaded`)
 
-这里直接说明关于处理信息这一块，这一块就是解析**JSON**也没有其他的东西了，示例代码：
+Here directly on the handling of information on this piece, this piece is parsing **JSON ** there is nothing else, sample code:
 
 ```
 if (isJsonResponse(connection)) {
             JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
             if (jsonResponse.has("data")) {  
-                JsonObject data = jsonResponse.getAsJsonObject("data");      //data 里面获取
+                JsonObject data = jsonResponse.getAsJsonObject("data");      
                 if (data.has("choices")) {
-                    JsonArray choices = data.getAsJsonArray("choices");      //choices里面获取
-                    for (int i = 0; i < choices.size(); i++) {            //从第 0 个开始
+                    JsonArray choices = data.getAsJsonArray("choices");      
+                    for (int i = 0; i < choices.size(); i++) {           
                         JsonObject choice = choices.get(i).getAsJsonObject();
                         if (choice.has("content")) {
-                            String Message = choice.get("content").getAsString();    //Content 内容获取
+                            String Message = choice.get("content").getAsString(); 
                             Message = Message.replaceAll("\"", "");
                             Message = Message.replace("\\n\\n", "\n");
                             Message = Message.replace("\\", "");
                             Message = convertUnicodeEmojis(Message);  
-                            contentMessage = Message;                //赋值message，提供外部链接
+                            contentMessage = Message;
                         }
                     }
                 }
@@ -347,12 +347,12 @@ if (isJsonResponse(connection)) {
         }
 ```
 
-> 总体下来，介绍本项目三种请求方式应该还是相对简单，目前的 **BUG** 也只能尽量去修🥳，也希望各路大神的对这个项目的支援！再次感谢🎉！
+> Overall down, the introduction of this project three ways to request should still be relatively simple, the current **BUG** can only try to fix 🥳, but also hope that all the gods of the support of this project! Thanks again 🎉!
 ---
 
-## 4.结语
+## 4.Conclusion
 >
-> 感谢大家能打开我的项目，虽然我写的不是很好，但是我也在努力开发这个项目，当你问我为什么不使用官方的项目的时候，我想说其实这个也是在挑战自我（重复造轮子），官方的开发固然比我个人开发完善许多，但是我还是会继续坚持下去，当使用的效率好过官方的时候，我认为这个项目就算是一个成功的学习经验。这个项目我会一直更新下去。同时也希望越来越多人能一起参与进来🚀，感谢你能看到最后！😆👏
+> Thank you for opening my project, although I'm not very good at writing, but I'm also trying to develop this project, when you ask me why I do not use the official project, I want to say that in fact, this is also in the challenge of self (repeated building wheels), the official development of the official development is certainly a lot more than my personal development of the perfection of my personal development, but I'll continue to adhere to it, when the use of the efficiency of the official better than the official time, I think this project I consider this project a successful learning experience. I will keep updating this project. Also I hope more and more people will participate together 🚀 Thanks for seeing it to the end! 😆👏
 
 ----
-**最后的最后感恩 gson 的 jar 包开发人员以及 Apache 的 jar 包开发人员**👩‍💻👨‍💻
+**Last thanks to the jar developers of gson and the jar developers of Apache** 👩‍💻👨‍💻
