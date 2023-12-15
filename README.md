@@ -2,7 +2,7 @@
 >
 > ChatGLM-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
 ----
-## ⚠️Caution😟！The original **0.0.1** is no longer available, the official address of its call has been changed, it is not possible to use **0.0.1** version, please move to **0.0.2** version as soon as possible.
+## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.0.3.
 
 **Java Maven Dependency (BlueChatGLM)**
 > Please use **Java Maven** Library✔️. **Java Ant** Using this seems to give an error.❌
@@ -11,7 +11,7 @@
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
 </dependency>
 ```
 
@@ -22,23 +22,25 @@ It provides highly accurate and secure time information via time servers on the 
 ```
 //Get Network Time Protocol Server（NTP Server）
 
-    protected long receiveTime() {
-        long currentTime = System.currentTimeMillis(); //Gets the millisecond timestamp of the current system.
-        if (currentTime - lastUpdateTime < 60000) { //If the time difference is less than 60 seconds, return the last time obtained from the NTP server
-            return lastServerTime;
-        } else {
-            try {
-                NTPUDPClient timeClient = new NTPUDPClient(); //Create an NTPUDPClient object to communicate with the NTP server.
-                timeClient.setDefaultTimeout(timeout);
-                InetAddress inetAddress = InetAddress.getByName(ntpServer);  //Get the IP address of the NTP server using the provided ntpServer string.
-                TimeInfo timeInfo = timeClient.getTime(inetAddress);  //Extracting server time information
-                long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
-                lastServerTime = serverTime; //Stores the newly acquired server time in the lastServerTime variable for future use.
-                lastUpdateTime = currentTime;  //Stores the current time in the lastUpdateTime variable for future comparison.
-                return serverTime; //Returns the time obtained from the NTP server
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to fetch NTP time", e);
+    private long getNTPTime() throws IOException {
+        int port = 123;
+        InetAddress address = InetAddress.getByName("ntp.aliyun.com");
+
+        try (DatagramSocket socket = new DatagramSocket()) {
+            byte[] buf = new byte[48];
+            buf[0] = 0x1B;
+            DatagramPacket requestPacket = new DatagramPacket(buf, buf.length, address, port);
+            socket.send(requestPacket);
+
+            DatagramPacket responsePacket = new DatagramPacket(new byte[48], 48);
+            socket.receive(responsePacket);
+
+            byte[] rawData = responsePacket.getData();
+            long secondsSince1900 = 0;
+            for (int i = 40; i <= 43; i++) {
+                secondsSince1900 = (secondsSince1900 << 8) | (rawData[i] & 0xff);
             }
+            return (secondsSince1900 - 2208988800L) * 1000;
         }
     }
 ```
@@ -124,8 +126,6 @@ According to **JWT.io** this website for understanding and principle of learning
 ```
 private String encodeBase64Url(byte[] data) {
         String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data) //convert the input to Base64Url
-                .replace("+", "-")  //The plus sign here needs to be replaced with -.
-                .replace("/", "_"); //replace the slash here with a _.
         return base64url; // return base64url
     }
 ```
@@ -352,7 +352,7 @@ if (isJsonResponse(connection)) {
 
 ## 4.Conclusion
 >
-> Thank you for opening my project, although I'm not very good at writing, but I'm also trying to develop this project, when you ask me why I do not use the official project, I want to say that in fact, this is also in the challenge of self (repeated building wheels), the official development of the official development is certainly a lot more than my personal development of the perfection of my personal development, but I'll continue to adhere to it, when the use of the efficiency of the official better than the official time, I think this project I consider this project a successful learning experience. I will keep updating this project. Also I hope more and more people will participate together 🚀 Thanks for seeing it to the end! 😆👏
+> Thank you for opening my project, this is a third party development ChatGLM SDK development project, I am also trying to develop and update this project, the official development is certainly much more perfect than my personal development, of course, I personally will continue to insist on the development of the time when the use of the efficiency of the official better than the official time, I think that this project I think that this project is a successful learning experience. I will continue to update this project. I also hope that more and more people will participate together 🚀 Thank you for seeing it to the end!😆👏
 
 ----
 **Last thanks to the jar developers of gson and the jar developers of Apache** 👩‍💻👨‍💻
