@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class ReceiveAsyncInvokeOnlyText {
 
-    private String ReponseMessage;
+    private String reponseMessage;
     private String DefaultUrl = "https://open.bigmodel.cn/api/paas/v3/model-api/chatglm_turbo/async-invoke";
     private String AsyncInvokeCheckUrl = "https://open.bigmodel.cn/api/paas/v3/model-api/-/async-invoke/";
 
@@ -18,7 +18,7 @@ public class ReceiveAsyncInvokeOnlyText {
         CompletableFuture<String> result = asyncInvokeModel.asyncRequest(token, message, urls, AsyncInvokeCheckUrl);
 
         result.thenAccept(response -> {
-            ReponseMessage = asyncInvokeModel.getContentMessage();
+            reponseMessage = asyncInvokeModel.getContentMessage();
         }).exceptionally(ex -> {
             System.err.println("Error: " + ex.getMessage());
             return null;
@@ -27,6 +27,6 @@ public class ReceiveAsyncInvokeOnlyText {
     }
 
     public String getReponse() {
-        return ReponseMessage;
+        return reponseMessage;
     }
 }

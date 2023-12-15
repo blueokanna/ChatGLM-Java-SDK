@@ -1,14 +1,11 @@
 package top.pulselink.chatglm;
 
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.net.ntp.NTPUDPClient;
-import org.apache.commons.net.ntp.TimeInfo;
 
 public final class CustomJWT {
 
@@ -16,15 +13,11 @@ public final class CustomJWT {
     private final String algorithm;
     private final String header;
     private final String payload;
-    private final String ntpServer = "ntp.aliyun.com";
-    private final int timeout = 5000;
-    private long lastServerTime = 0;
-    private long lastUpdateTime = 0;
 
     public CustomJWT(String userID, String userSecret, String algorithm) {
         this.algorithm = algorithm;
         this.secret = userSecret;
-        this.header = "{\"alg\":\"HS256\",\"typ\":\"JWT\",\"sign_type\":\"SIGN\"}";
+        this.header = "{\"alg\":\"HS256\",\"sign_type\":\"SIGN\"}";
         this.payload = JWTPayload(userID);
     }
 
@@ -58,8 +51,8 @@ public final class CustomJWT {
     }
 
     protected String JWTPayload(String userID) {
-        long timeNow = receiveTime();
-        long expTime = timeNow * 10;
+        long timeNow =  new SyncTime().TimeToSync();
+        long expTime = timeNow * 3;
         return String.format("{\"api_key\":\"%s\",\"exp\":%d,\"timestamp\":%d}", userID, expTime, timeNow);
     }
 
@@ -76,29 +69,7 @@ public final class CustomJWT {
     }
 
     private String encodeBase64Url(byte[] data) {
-        String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data)
-                .replace("+", "-")
-                .replace("/", "_");
+        String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data);
         return base64url;
-    }
-
-    protected long receiveTime() {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastUpdateTime < 60000) {
-            return lastServerTime;
-        } else {
-            try {
-                NTPUDPClient timeClient = new NTPUDPClient();
-                timeClient.setDefaultTimeout(timeout);
-                InetAddress inetAddress = InetAddress.getByName(ntpServer);
-                TimeInfo timeInfo = timeClient.getTime(inetAddress);
-                long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
-                lastServerTime = serverTime;
-                lastUpdateTime = currentTime;
-                return serverTime;
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to fetch NTP time", e);
-            }
-        }
     }
 }

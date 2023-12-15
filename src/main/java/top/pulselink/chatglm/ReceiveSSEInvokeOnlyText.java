@@ -2,24 +2,25 @@ package top.pulselink.chatglm;
 
 public class ReceiveSSEInvokeOnlyText {
 
-    private String getElements;
-    private String DefaultUrl = "https://open.bigmodel.cn/api/paas/v3/model-api/chatglm_std/sse-invoke";
+    private String responseMessage = null;
+    private final String defaultUrl = "https://open.bigmodel.cn/api/paas/v3/model-api/chatglm_turbo/sse-invoke";
 
     public ReceiveSSEInvokeOnlyText(String token, String message) {
-        SSEInvokeSendRequest(token, message, DefaultUrl);
+        receiveSSEInvoke(token, message, defaultUrl);
     }
 
-    private void SSEInvokeSendRequest(String token, String message, String urls) {
+    private void receiveSSEInvoke(String token, String message, String url) {
         try {
             SSEInvokeModel sseInvoke = new SSEInvokeModel();
-            sseInvoke.SSEinvokeRequestMethod(token, message, urls);
-            getElements = sseInvoke.resultQueue.take();
+            sseInvoke.SSEinvokeRequestMethod(token, message, url);
+            responseMessage = sseInvoke.resultQueue.take();
         } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
             ex.printStackTrace();
         }
     }
 
-    public String getGetElement() {
-        return getElements;
+    public String getResponseMessage() {
+        return responseMessage;
     }
 }

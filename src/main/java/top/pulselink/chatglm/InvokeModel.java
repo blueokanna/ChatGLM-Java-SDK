@@ -1,16 +1,12 @@
 package top.pulselink.chatglm;
 
+import com.google.gson.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CompletableFuture;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.CompletableFuture;
 
 public class InvokeModel {
 
@@ -29,8 +25,8 @@ public class InvokeModel {
 
     private String readResponseData(HttpURLConnection connection) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
             StringBuilder response = new StringBuilder();
+            String line;
             while ((line = reader.readLine()) != null) {
                 response.append(line);
             }
@@ -47,22 +43,9 @@ public class InvokeModel {
         URL url = new URL(apiUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-        connection.setRequestProperty("Connection", "keep-alive");
-        connection.setRequestProperty("Authorization", "Bearer " + token);
-        
-        connection.setDoInput(true);
-        connection.setDoOutput(true);
+        setupConnectionProperties(connection, token);
 
-        JsonObject payloadMessage = new JsonObject();
-        payloadMessage.addProperty("prompt", message);
-
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] postDataBytes = payloadMessage.toString().getBytes(StandardCharsets.UTF_8);
-            os.write(postDataBytes);
-        }
+        sendPayloadData(connection, message);
 
         int responseCode = connection.getResponseCode();
 
@@ -76,32 +59,61 @@ public class InvokeModel {
         }
     }
 
-    private void processResponseData(String responseData, HttpURLConnection connection) {
-        //String contentType = connection.getContentType();
-        //System.out.println("Content-Type: " + contentType); // 调试信息
+    private void setupConnectionProperties(HttpURLConnection connection, String token) throws ProtocolException {
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+        connection.setRequestProperty("Connection", "keep-alive");
+        connection.setRequestProperty("Authorization", "Bearer " + token);
+        connection.setDoInput(true);
+        connection.setDoOutput(true);
+    }
 
+    private void sendPayloadData(HttpURLConnection connection, String message) throws IOException {
+        JsonObject payloadMessage = new JsonObject();
+        payloadMessage.addProperty("prompt", message);
+
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] postDataBytes = payloadMessage.toString().getBytes(StandardCharsets.UTF_8);
+            os.write(postDataBytes);
+        }
+    }
+
+    private void processResponseData(String responseData, HttpURLConnection connection) {
         if (isJsonResponse(connection)) {
             JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
-            if (jsonResponse.has("data")) {
-                JsonObject data = jsonResponse.getAsJsonObject("data");
-                if (data.has("choices")) {
-                    JsonArray choices = data.getAsJsonArray("choices");
-                    for (int i = 0; i < choices.size(); i++) {
-                        JsonObject choice = choices.get(i).getAsJsonObject();
-                        if (choice.has("content")) {
-                            String Message = choice.get("content").getAsString();
-                            Message = Message.replaceAll("\"", "");
-                            Message = Message.replace("\\n\\n", "\n");
-                            Message = Message.replace("\\nn", "\n");
-                            Message = Message.replace("\\", "");
-                            Message = convertUnicodeEmojis(Message);
-                            contentMessage = Message;
-                        }
-                    }
-                }
-            }
+            extractContentFromJson(jsonResponse);
         } else {
             System.out.println("Response is not in JSON format.");
+        }
+    }
+
+    private void extractContentFromJson(JsonObject jsonResponse) {
+        if (jsonResponse.has("data")) {
+            JsonObject data = jsonResponse.getAsJsonObject("data");
+            if (data.has("choices")) {
+                JsonArray choices = data.getAsJsonArray("choices");
+                processChoices(choices);
+            }
+        }
+    }
+
+    private void processChoices(JsonArray choices) {
+        for (int i = 0; i < choices.size(); i++) {
+            JsonObject choice = choices.get(i).getAsJsonObject();
+            extractContent(choice);
+        }
+    }
+
+    private void extractContent(JsonObject choice) {
+        if (choice.has("content")) {
+            String message = choice.get("content").getAsString()
+                    .replaceAll("\"", "")
+                    .replaceAll("\\\\n\\\\n", "\n")
+                    .replaceAll("\\\\nn", "\n")
+                    .replaceAll("\\n", "\n")
+                    .replaceAll("\\\\", "");
+            contentMessage = convertUnicodeEmojis(message);
         }
     }
 
@@ -119,7 +131,7 @@ public class InvokeModel {
         return result.toString();
     }
 
-    protected String getContentMessage() {
-        return contentMessage.replace("\\n", "\n");
+    public String getContentMessage() {
+        return contentMessage;
     }
 }

@@ -3,6 +3,7 @@ package top.pulselink.chatglm;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -64,7 +65,6 @@ public class AsyncInvokeModel {
                         .build(), HttpResponse.BodyHandlers.ofString())
                 .thenCompose(response -> {
                     if (response.statusCode() == 200) {
-                        //System.out.println(checkUrl + TaskID);
                         return CompletableFuture.completedFuture(response.body());
                     } else {
                         return CompletableFuture.failedFuture(new RuntimeException("HTTP request failure, Code: " + response.statusCode()));
@@ -80,7 +80,7 @@ public class AsyncInvokeModel {
                     return taskStatus;
                 }
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(300);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -127,18 +127,20 @@ public class AsyncInvokeModel {
                     if (!choices.isEmpty()) {
                         JsonObject choice = choices.get(0).getAsJsonObject();
                         if (choice.has("content")) {
-                            String message = choice.get("content").getAsString()
-                                    .replaceAll("\"", "")
-                                    .replace("\\", "")
-                                    .replace("\\nn", "\n")
-                                    .replace("\\n\\n", "\n");
-                            message = convertUnicodeEmojis(message);
-                            getMessage = message;
+                            String content = choice.get("content").getAsString();
+
+                            getMessage = convertUnicodeEmojis(content);
+                            getMessage = getMessage.replaceAll("\"", "")
+                                    .replaceAll("\\\\n\\\\n", "\n")
+                                    .replaceAll("\\\\nn", "\n")
+                                    .replaceAll("\\n", "\n")
+                                    .replaceAll("\\\\", "")
+                                    .replace("\\", "");
                         }
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (JsonSyntaxException e) {
             System.out.println("Error processing task status: " + e.getMessage());
         }
         return getMessage;
@@ -163,6 +165,6 @@ public class AsyncInvokeModel {
     }
 
     public String getContentMessage() {
-        return getMessage.replace("\\n", "\n");
+        return getMessage;
     }
 }

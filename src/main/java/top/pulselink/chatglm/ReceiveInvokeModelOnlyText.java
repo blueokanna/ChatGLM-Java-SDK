@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 public class ReceiveInvokeModelOnlyText {
 
 
-    private String responseMessage, ReponseMessage;
+    private String responseMessage;
     private String DefaultUrl = "https://open.bigmodel.cn/api/paas/v3/model-api/chatglm_turbo/invoke";
 
     public ReceiveInvokeModelOnlyText(String token, String message) {
@@ -16,7 +16,6 @@ public class ReceiveInvokeModelOnlyText {
         InvokeModel invokeModel = new InvokeModel();
         CompletableFuture<String> result = invokeModel.HTTPServer(token, message, apiUrl);
         result.thenAccept(response -> {
-            ReponseMessage = response;
             responseMessage = invokeModel.getContentMessage();
         }).join();
     }
@@ -25,7 +24,4 @@ public class ReceiveInvokeModelOnlyText {
         return responseMessage;
     }
 
-    public String getTrueResponseMessage() {
-        return ReponseMessage;
-    }
 }
