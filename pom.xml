@@ -24,9 +24,9 @@
     </developers>
     <scm>
         <tag>main</tag>
-        <url>https://github.com/blueokanna/ESP32-ChatGLM.git</url>
-        <connection>https://github.com/blueokanna/ESP32-ChatGLM.git</connection>
-        <developerConnection>https://github.com/blueokanna/ESP32-ChatGLM.git</developerConnection>
+        <url>https://github.com/blueokanna/ChatGLM-Java-SDK.git</url>
+        <connection>https://github.com/blueokanna/ChatGLM-Java-SDK.git</connection>
+        <developerConnection>https://github.com/blueokanna/ChatGLM-Java-SDK.git</developerConnection>
     </scm>
     <dependencies>
         <dependency>
