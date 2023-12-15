@@ -2,7 +2,7 @@
 >
 > 此项目是由 **Java** 的 **JDK17** 的长期版本开发
 ----
-## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，官方已经将其调用的地址修改掉了，无法使用 **0.0.1**的版本，请尽快转移到 **0.0.2** 的版本上
+## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，最后一个全新版本是 **0.0.3**
 
 **Java Maven Dependency (BlueChatGLM)调用**
 > 请使用 **Java Maven** 调用这个库✔️，**Java Ant** 使用这个似乎会报错❌
@@ -11,7 +11,7 @@
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
 </dependency>
 ```
 
@@ -22,23 +22,25 @@
 ```
 //获取网络时间协议服务器（NTP Server）
 
-    protected long receiveTime() {
-        long currentTime = System.currentTimeMillis(); //获取当前系统的毫秒级时间戳。
-        if (currentTime - lastUpdateTime < 60000) { //如果时间差小于60秒，就返回上一次从NTP服务器获取的时间
-            return lastServerTime;
-        } else {
-            try {
-                NTPUDPClient timeClient = new NTPUDPClient(); //创建一个NTPUDPClient对象，用于与NTP服务器通信。
-                timeClient.setDefaultTimeout(timeout);
-                InetAddress inetAddress = InetAddress.getByName(ntpServer);  通过提供的 ntpServer 字符串来获取NTP服务器的IP地址。
-                TimeInfo timeInfo = timeClient.getTime(inetAddress);  //提取服务器时间信息
-                long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
-                lastServerTime = serverTime; //将新获取的服务器时间存储在 lastServerTime 变量中，以备将来使用。
-                lastUpdateTime = currentTime;  //将当前时间存储在 lastUpdateTime 变量中，以备将来的比较。
-                return serverTime; //返回从NTP服务器获取的时间
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to fetch NTP time", e);
+    private long getNTPTime() throws IOException {
+        int port = 123;
+        InetAddress address = InetAddress.getByName("ntp.aliyun.com");
+
+        try (DatagramSocket socket = new DatagramSocket()) {
+            byte[] buf = new byte[48];
+            buf[0] = 0x1B;
+            DatagramPacket requestPacket = new DatagramPacket(buf, buf.length, address, port);
+            socket.send(requestPacket);
+
+            DatagramPacket responsePacket = new DatagramPacket(new byte[48], 48);
+            socket.receive(responsePacket);
+
+            byte[] rawData = responsePacket.getData();
+            long secondsSince1900 = 0;
+            for (int i = 40; i <= 43; i++) {
+                secondsSince1900 = (secondsSince1900 << 8) | (rawData[i] & 0xff);
             }
+            return (secondsSince1900 - 2208988800L) * 1000;
         }
     }
 ```
@@ -123,9 +125,7 @@ public class Main{
 
 ```
 private String encodeBase64Url(byte[] data) {
-        String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data)  //将输入的内容转换成 Base64Url
-                .replace("+", "-")    //这里的加号需要替换成-
-                .replace("/", "_");   //这里的斜杠替换成_
+        String base64url = Base64.getUrlEncoder().withoutPadding().encodeToString(data)；  //将输入的内容转换成 Base64Url
         return base64url;             //返回 base64url
     }
 ```
@@ -352,7 +352,7 @@ if (isJsonResponse(connection)) {
 
 ## 4.结语
 >
-> 感谢大家能打开我的项目，虽然我写的不是很好，但是我也在努力开发这个项目，当你问我为什么不使用官方的项目的时候，我想说其实这个也是在挑战自我（重复造轮子），官方的开发固然比我个人开发完善许多，但是我还是会继续坚持下去，当使用的效率好过官方的时候，我认为这个项目就算是一个成功的学习经验。这个项目我会一直更新下去。同时也希望越来越多人能一起参与进来🚀，感谢你能看到最后！😆👏
+> 谢谢你打开我的项目，这是一个第三方开发的 ChatGLM SDK 开发项目，我也在尝试开发和更新这个项目，官方开发肯定比我个人开发要完善很多，当然我个人也会继续坚持开发下去，当使用效率的时候 官方比官方时间更好，我认为这个项目我认为这个项目是一次成功的学习经历。 我会不断更新这个项目。 也希望越来越多的人一起参与🚀 谢谢你们看到最后！😆👏
 
 ----
 **最后的最后感恩 gson 的 jar 包开发人员以及 Apache 的 jar 包开发人员**👩‍💻👨‍💻
