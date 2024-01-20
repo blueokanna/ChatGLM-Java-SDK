@@ -4,7 +4,7 @@
 ----
 ## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.0.
 
-**Java Maven Dependency (BlueChatGLM)调用**
+**Java Maven Dependency (BlueChatGLM)**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
@@ -13,14 +13,14 @@
 </dependency>
 ```
 
-**Java Gradle (BlueChatGLM)调用**
+**Java Gradle (BlueChatGLM)**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.0.3'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.0'
 ```
 
-**Java sbt (BlueChatGLM)调用**
+**Java sbt (BlueChatGLM)**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.0.3"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.0"
 ```
 
 ## 1.Using NTP Server Time
@@ -117,7 +117,7 @@ public class Main{
 
 ### 2.2 Senior Developer👨🏼‍💻
 
-For senior developers, we will follow up the development work in the future, the current version is the language model version of ChatGLM-4, and has solved the problem of SSE Chinese input can not be read, of course, we also hope that other developers to provide technical support for this project! Thank you in advance!
+**For senior developers, we will follow up the development work in the future, the current version is the language model version of ChatGLM-4, and has solved the problem of SSE Chinese input can not be read, of course, we also hope that other developers to provide technical support for this project! Thank you in advance!**
 
 ----
 
@@ -288,7 +288,7 @@ try (JsonReader jsonReader = new JsonReader(new StringReader(responseData))) {
 The `HTTPRequest` method is used here to receive the message:
 
 ```
-String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":true,\"temperture\":%f,\"top_p\":%f}",
+String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}],\"temperture\":%f,\"top_p\":%f}",
                 Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -300,7 +300,7 @@ String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role
                 .build();
 ```
 
-The overall use is to send messages asynchronously, which has the advantage of reducing thread blocking, where `code` and `msg` are getting error messages. When you get a `request_id`, then query the
+The overall use is to send messages asynchronously, which has the advantage of reducing thread blocking, where `code` and `status` are getting error messages. When you get a `request_id`, then query the
 
 ```
                     if (response.statusCode() == 200) {      //When the response value is 200, output the corresponding parameters of the interface for an asynchronous request.
