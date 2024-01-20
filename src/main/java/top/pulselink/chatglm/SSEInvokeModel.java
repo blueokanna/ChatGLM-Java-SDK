@@ -1,79 +1,151 @@
 package top.pulselink.chatglm;
 
-import com.google.gson.JsonObject;
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Flow;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static top.pulselink.chatglm.ConstantValue.*;
 
 public class SSEInvokeModel {
 
-    protected BlockingQueue<String> resultQueue;
+    private BlockingQueue<Character> charQueue = new LinkedBlockingQueue<>();
+    private volatile String getMessage = "";
+    private volatile StringBuilder queueResult = new StringBuilder();
 
-    public SSEInvokeModel() {
-        resultQueue = new ArrayBlockingQueue<>(2000);
+    public synchronized CompletableFuture<String> SSERequest(String token, String input, String url) {
+        return SSEInvokeRequestMethod(token, input, url)
+                .thenApply(this::responseDataBody)
+                .exceptionally(ex -> "HTTP request failed with status code: " + ex.getMessage());
     }
 
-    public void SSEinvokeRequestMethod(String token, String message, String weburl) {
-        HttpURLConnection connection = null;
-        try {
-            URL url = new URL(weburl);
-            connection = (HttpURLConnection) url.openConnection();
-            setupConnection(token, message, connection);
+    private CompletableFuture<String> SSEInvokeRequestMethod(String token, String message, String apiUrl) {
+        String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":true,\"temperture\":%f,\"top_p\":%f}",
+                Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
 
-            JsonObject payloadMessage = createPayload(message);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(jsonRequestBody))
+                .build();
 
-            sendData(connection, payloadMessage);
+        return HttpClient.newHttpClient()
+                .sendAsync(request, HttpResponse.BodyHandlers.fromLineSubscriber(new SSESubscriber()))
+                .thenApply(response -> null);
+    }
 
-            receiveData(connection);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
+    private synchronized String responseDataBody(String responseData) {
+        try (JsonReader jsonReader = new JsonReader(new StringReader(responseData))) {
+            jsonReader.setLenient(true);
+            JsonElement jsonElement = JsonParser.parseReader(jsonReader);
+
+            if (jsonElement.isJsonObject()) {
+                JsonObject jsonResponse = jsonElement.getAsJsonObject();
+
+                if (jsonResponse.has("choices")) {
+                    JsonArray choices = jsonResponse.getAsJsonArray("choices");
+
+                    if (!choices.isEmpty()) {
+                        JsonObject choice = choices.get(0).getAsJsonObject();
+
+                        if (choice.has("delta")) {
+                            JsonObject delta = choice.getAsJsonObject("delta");
+
+                            if (delta.has("content")) {
+                                String content = delta.get("content").getAsString();
+                                getMessage = convertUnicodeEmojis(content);
+                                getMessage = getMessage.replaceAll("\"", "")
+                                        .replaceAll("\\\\n\\\\n", "\n")
+                                        .replaceAll("\\\\nn", "\n")
+                                        .replaceAll("\\n", "\n")
+                                        .replaceAll("\\\\", "")
+                                        .replaceAll("\\\\", "");
+
+                                for (char c : getMessage.toCharArray()) {
+                                    charQueue.offer(c);
+                                }
+
+                                while (!charQueue.isEmpty()) {
+                                    queueResult.append(charQueue.poll());
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                System.out.println("Invalid JSON format: " + jsonElement);
             }
+        } catch (IOException e) {
+            System.out.println("Error reading JSON: " + e.getMessage());
         }
+
+        return queueResult.toString();
     }
 
-    private void setupConnection(String token, String message, HttpURLConnection connection) throws IOException {
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Accept", "text/event-stream");
-        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        connection.setRequestProperty("Authorization", "Bearer " + token);
-        connection.setDoInput(true);
-        connection.setDoOutput(true);
-    }
+    private String convertUnicodeEmojis(String input) {
+        String regex = "\\\\u[0-9a-fA-F]{4}";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
 
-    private JsonObject createPayload(String message) {
-        JsonObject payloadMessage = new JsonObject();
-        payloadMessage.addProperty("prompt", message);
-        payloadMessage.addProperty("temperature", 0.95);
-        payloadMessage.addProperty("top_p", 0.7);
-        return payloadMessage;
-    }
-
-    private void sendData(HttpURLConnection connection, JsonObject payloadMessage) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8))) {
-            writer.write(payloadMessage.toString());
-            writer.flush();
+        StringBuilder result = new StringBuilder();
+        while (matcher.find()) {
+            String emoji = Character.toString((char) Integer.parseInt(matcher.group().substring(2), 16));
+            matcher.appendReplacement(result, emoji);
         }
+        matcher.appendTail(result);
+        getMessage = result.toString(); // Update getMessage here
+        return getMessage;
     }
 
-    private void receiveData(HttpURLConnection connection) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-            StringBuilder dataBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("data: ")) {
-                    String[] parts = line.split("\\:");
-                    String data = parts[1].trim();
-                    dataBuilder.append(data).append(" ");
+    public synchronized String getContentMessage() {
+        return queueResult.toString();
+    }
+
+    public class SSESubscriber implements Flow.Subscriber<String> {
+
+        private Flow.Subscription subscription;
+
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+            subscription.request(1);
+        }
+
+        @Override
+        public void onNext(String item) {
+            if (item.startsWith("data: ")) {
+                String jsonData = item.substring("data: ".length());
+                //System.out.println("Received SSE item: " + jsonData); //Debug
+
+                if (!jsonData.equals("[DONE]")) {
+                    responseDataBody(jsonData.replaceAll("Invalid JSON format: \\[\"DONE\"\\]", ""));
                 }
             }
-            resultQueue.offer(dataBuilder.toString());
+            subscription.request(1);
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            System.out.println("Error in SSESubscriber: " + throwable.getMessage());
+        }
+
+        @Override
+        public void onComplete() {
+            //System.out.println("SSESubscriber completed");
         }
     }
+
 }

@@ -1,26 +1,31 @@
 package top.pulselink.chatglm;
 
+import java.util.concurrent.CompletableFuture;
+
 public class ReceiveSSEInvokeOnlyText {
 
-    private String responseMessage = null;
-    private final String defaultUrl = "https://open.bigmodel.cn/api/paas/v3/model-api/chatglm_turbo/sse-invoke";
+    private String responseSSEMessage = null;
+    private final String defaultUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
     public ReceiveSSEInvokeOnlyText(String token, String message) {
         receiveSSEInvoke(token, message, defaultUrl);
     }
 
     private void receiveSSEInvoke(String token, String message, String url) {
-        try {
-            SSEInvokeModel sseInvoke = new SSEInvokeModel();
-            sseInvoke.SSEinvokeRequestMethod(token, message, url);
-            responseMessage = sseInvoke.resultQueue.take();
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            ex.printStackTrace();
-        }
+
+        SSEInvokeModel sseInvoke = new SSEInvokeModel();
+        CompletableFuture<String> result = sseInvoke.SSERequest(token, message, url);
+
+        result.thenAccept(response -> {
+            responseSSEMessage = sseInvoke.getContentMessage();
+        }).exceptionally(ex -> {
+            System.err.println("Error: " + ex.getMessage());
+            return null;
+        });
+        result.join();
     }
 
     public String getResponseMessage() {
-        return responseMessage;
+        return responseSSEMessage;
     }
 }

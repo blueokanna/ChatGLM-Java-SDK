@@ -12,11 +12,12 @@ import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static top.pulselink.chatglm.ConstantValue.*;
 
 public class AsyncInvokeModel {
 
     private String getMessage = "";
-    private String TaskID = "";
+    private String ID = "";
 
     public CompletableFuture<String> asyncRequest(String token, String input, String url, String checkUrl) {
         return asyncInvokeRequestMethod(token, input, url)
@@ -26,12 +27,16 @@ public class AsyncInvokeModel {
     }
 
     private CompletableFuture<String> asyncInvokeRequestMethod(String token, String message, String apiUrl) {
+
+        String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":true,\"temperture\":%f,\"top_p\":%f}",
+                Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
                 .header("Accept", "application/json")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .header("Authorization", "Bearer " + token)
-                .POST(HttpRequest.BodyPublishers.ofString("{\"prompt\":\"" + message + "\"}"))
+                .POST(HttpRequest.BodyPublishers.ofString(jsonRequestBody))
                 .build();
 
         return HttpClient.newHttpClient()
@@ -41,12 +46,11 @@ public class AsyncInvokeModel {
                         processResponseData(response.body());
                         return CompletableFuture.completedFuture(response.body());
                     } else {
-
                         JsonObject errorResponse = JsonParser.parseString(response.body()).getAsJsonObject();
-                        if (errorResponse.has("code") && errorResponse.has("msg")) {
-                            int code = errorResponse.get("code").getAsInt();
-                            String msg = errorResponse.get("msg").getAsString();
-                            throw new RuntimeException("HTTP request failure, Code: " + code + ", Message: " + msg);
+                        if (errorResponse.has("id") && errorResponse.has("task_status")) {
+                            int code = errorResponse.get("id").getAsInt();
+                            String status = errorResponse.get("task_status").getAsString();
+                            throw new RuntimeException("HTTP request failure, Your request id is: " + code + ", Status: " + status);
                         } else {
                             return CompletableFuture.failedFuture(new RuntimeException("HTTP request failure, Code: " + response.statusCode()));
                         }
@@ -57,7 +61,7 @@ public class AsyncInvokeModel {
     private CompletableFuture<String> asyncInvokeGetMethod(String token, String checkUrl) {
         return HttpClient.newHttpClient()
                 .sendAsync(HttpRequest.newBuilder()
-                        .uri(URI.create(checkUrl + TaskID))
+                        .uri(URI.create(checkUrl + ID))
                         .header("Accept", "application/json")
                         .header("Content-Type", "application/json;charset=UTF-8")
                         .header("Authorization", "Bearer " + token)
@@ -90,52 +94,47 @@ public class AsyncInvokeModel {
 
     private boolean isTaskComplete(String taskStatus) {
         JsonObject taskStatusJson = JsonParser.parseString(taskStatus).getAsJsonObject();
-        if (taskStatusJson.has("data")) {
-            JsonObject data = taskStatusJson.getAsJsonObject("data");
-            if (data.has("task_status")) {
-                String status = data.get("task_status").getAsString();
-                return "SUCCESS".equalsIgnoreCase(status);
-            }
+
+        if (taskStatusJson.has("task_status")) {
+            String status = taskStatusJson.get("task_status").getAsString();
+            return "SUCCESS".equalsIgnoreCase(status);
         }
         return false;
     }
 
     private void processResponseData(String responseData) {
         JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
+        if (jsonResponse.has("id")) {
+            String taskId = jsonResponse.get("id").getAsString()
+                    .replace("\"", "")
+                    .replace("\\n\\n", "\n");
+            this.ID = taskId;
 
-        if (jsonResponse.has("data")) {
-            JsonObject data = jsonResponse.getAsJsonObject("data");
-            if (data.has("task_id")) {
-                String taskId = data.get("task_id").getAsString()
-                        .replace("\"", "")
-                        .replace("\\n\\n", "\n");
-                this.TaskID = taskId;
-
-            }
-        } else {
-            System.out.println("Response does not contain 'data' field");
         }
     }
 
     private String processTaskStatus(String responseData) {
         try {
             JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
-            if (jsonResponse.has("data")) {
-                JsonObject data = jsonResponse.getAsJsonObject("data");
-                if (data.has("choices")) {
-                    JsonArray choices = data.getAsJsonArray("choices");
-                    if (!choices.isEmpty()) {
-                        JsonObject choice = choices.get(0).getAsJsonObject();
-                        if (choice.has("content")) {
-                            String content = choice.get("content").getAsString();
 
+            if (jsonResponse.has("choices")) {
+                JsonArray choices = jsonResponse.getAsJsonArray("choices");
+
+                if (!choices.isEmpty()) {
+                    JsonObject choice = choices.get(0).getAsJsonObject();
+
+                    if (choice.has("message")) {
+                        JsonObject message = choice.getAsJsonObject("message");
+
+                        if (message.has("content")) {
+                            String content = message.get("content").getAsString();
                             getMessage = convertUnicodeEmojis(content);
                             getMessage = getMessage.replaceAll("\"", "")
                                     .replaceAll("\\\\n\\\\n", "\n")
                                     .replaceAll("\\\\nn", "\n")
                                     .replaceAll("\\n", "\n")
                                     .replaceAll("\\\\", "")
-                                    .replace("\\", "");
+                                    .replaceAll("\\\\", "");
                         }
                     }
                 }
@@ -143,6 +142,7 @@ public class AsyncInvokeModel {
         } catch (JsonSyntaxException e) {
             System.out.println("Error processing task status: " + e.getMessage());
         }
+
         return getMessage;
     }
 
@@ -161,7 +161,7 @@ public class AsyncInvokeModel {
     }
 
     public String getTaskID() {
-        return TaskID;
+        return ID;
     }
 
     public String getContentMessage() {

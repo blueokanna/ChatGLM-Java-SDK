@@ -1,120 +1,95 @@
 package top.pulselink.chatglm;
 
-import com.google.gson.*;
-import java.io.*;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.concurrent.CompletableFuture;
+import static top.pulselink.chatglm.ConstantValue.Language_Model;
+import static top.pulselink.chatglm.ConstantValue.system_content;
+import static top.pulselink.chatglm.ConstantValue.system_role;
+import static top.pulselink.chatglm.ConstantValue.temp_float;
+import static top.pulselink.chatglm.ConstantValue.top_p_float;
+import static top.pulselink.chatglm.ConstantValue.user_role;
 
 public class InvokeModel {
 
-    private String contentMessage = "";
+    public String getMessage = "";
 
-    public CompletableFuture<String> HTTPServer(String token, String message, String url) {
-        return CompletableFuture.supplyAsync(() -> {
+    public synchronized CompletableFuture<String> syncRequest(String token, String input, String url) {
+        return syncInvokeRequestMethod(token, input, url)
+                .thenApply(responseData -> ResponseDataBody(responseData))
+                .exceptionally(ex -> "HTTP request failed with status code: " + ex.getMessage());
+    }
+
+    private CompletableFuture<String> syncInvokeRequestMethod(String token, String message, String apiUrl) {
+        String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":false,\"temperture\":%f,\"top_p\":%f}",
+                Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(jsonRequestBody))
+                .build();
+
+        return HttpClient.newHttpClient()
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenCompose(response -> {
+                    if (response.statusCode() == 200) {
+                        ResponseDataBody(response.body());
+                        return CompletableFuture.completedFuture(response.body());
+                    } else {
+                        JsonObject errorResponse = JsonParser.parseString(response.body()).getAsJsonObject();
+                        if (errorResponse.has("created") && errorResponse.has("id")) {
+                            int idCode = errorResponse.get("id").getAsInt();
+                            int createdCode = errorResponse.get("created").getAsInt();
+                            throw new RuntimeException("HTTP request failure, Your request created code is: " + createdCode + ", your id: " + idCode);
+                        } else {
+                            return CompletableFuture.failedFuture(new RuntimeException("HTTP request failure, Code: " + response.statusCode()));
+                        }
+                    }
+                });
+    }
+
+    private String ResponseDataBody(String responseData) {
             try {
-                return invokeMethod(token, message, url);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException("HTTP request failed.");
+                JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
+
+                if (jsonResponse.has("choices")) {
+                    JsonArray choices = jsonResponse.getAsJsonArray("choices");
+
+                    if (!choices.isEmpty()) {
+                        JsonObject choice = choices.get(0).getAsJsonObject();
+
+                        if (choice.has("message")) {
+                            JsonObject message = choice.getAsJsonObject("message");
+
+                            if (message.has("content")) {
+                                String content = message.get("content").getAsString();
+                                getMessage = convertUnicodeEmojis(content);
+                                getMessage = getMessage.replaceAll("\"", "")
+                                        .replaceAll("\\\\n\\\\n", "\n")
+                                        .replaceAll("\\\\nn", "\n")
+                                        .replaceAll("\\n", "\n")
+                                        .replaceAll("\\\\", "")
+                                        .replaceAll("\\\\", "");
+                            }
+                        }
+                    }
+                }
+            } catch (JsonSyntaxException e) {
+                System.out.println("Error processing task status: " + e.getMessage());
             }
-        });
-    }
 
-    private String readResponseData(HttpURLConnection connection) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            return response.toString();
-        }
-    }
-
-    private boolean isJsonResponse(HttpURLConnection connection) {
-        String contentType = connection.getContentType();
-        return contentType != null && contentType.toLowerCase().contains("application/json");
-    }
-
-    private String invokeMethod(String token, String message, String apiUrl) throws IOException {
-        URL url = new URL(apiUrl);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        setupConnectionProperties(connection, token);
-
-        sendPayloadData(connection, message);
-
-        int responseCode = connection.getResponseCode();
-
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            String responseData = readResponseData(connection);
-            processResponseData(responseData, connection);
-            return responseData;
-        } else {
-            System.out.println("HTTP request failure, Code: " + responseCode);
-            return "HTTP request failure, Code: " + responseCode;
-        }
-    }
-
-    private void setupConnectionProperties(HttpURLConnection connection, String token) throws ProtocolException {
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-        connection.setRequestProperty("Connection", "keep-alive");
-        connection.setRequestProperty("Authorization", "Bearer " + token);
-        connection.setDoInput(true);
-        connection.setDoOutput(true);
-    }
-
-    private void sendPayloadData(HttpURLConnection connection, String message) throws IOException {
-        JsonObject payloadMessage = new JsonObject();
-        payloadMessage.addProperty("prompt", message);
-
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] postDataBytes = payloadMessage.toString().getBytes(StandardCharsets.UTF_8);
-            os.write(postDataBytes);
-        }
-    }
-
-    private void processResponseData(String responseData, HttpURLConnection connection) {
-        if (isJsonResponse(connection)) {
-            JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
-            extractContentFromJson(jsonResponse);
-        } else {
-            System.out.println("Response is not in JSON format.");
-        }
-    }
-
-    private void extractContentFromJson(JsonObject jsonResponse) {
-        if (jsonResponse.has("data")) {
-            JsonObject data = jsonResponse.getAsJsonObject("data");
-            if (data.has("choices")) {
-                JsonArray choices = data.getAsJsonArray("choices");
-                processChoices(choices);
-            }
-        }
-    }
-
-    private void processChoices(JsonArray choices) {
-        for (int i = 0; i < choices.size(); i++) {
-            JsonObject choice = choices.get(i).getAsJsonObject();
-            extractContent(choice);
-        }
-    }
-
-    private void extractContent(JsonObject choice) {
-        if (choice.has("content")) {
-            String message = choice.get("content").getAsString()
-                    .replaceAll("\"", "")
-                    .replaceAll("\\\\n\\\\n", "\n")
-                    .replaceAll("\\\\nn", "\n")
-                    .replaceAll("\\n", "\n")
-                    .replaceAll("\\\\", "");
-            contentMessage = convertUnicodeEmojis(message);
-        }
+        return getMessage;
     }
 
     private String convertUnicodeEmojis(String input) {
@@ -132,6 +107,6 @@ public class InvokeModel {
     }
 
     public String getContentMessage() {
-        return contentMessage;
+        return getMessage;
     }
 }
