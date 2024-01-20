@@ -2,25 +2,25 @@
 >
 > 此项目是由 **Java** 的 **JDK17** 的长期版本开发
 ----
-## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，最后一个全新版本是 **0.1.0**
+## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，最后一个全新版本是 **0.1.1**
 
 **Java Maven Dependency (BlueChatGLM)调用**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
 **Java Gradle (BlueChatGLM)调用**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.0'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1'
 ```
 
 **Java sbt (BlueChatGLM)调用**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.0"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
 ```
 
 
