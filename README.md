@@ -4,12 +4,23 @@
 ----
 ## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.0.
 
+**Java Maven Dependency (BlueChatGLM)调用**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
   <version>0.1.0</version>
 </dependency>
+```
+
+**Java Gradle (BlueChatGLM)调用**
+```
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.0.3'
+```
+
+**Java sbt (BlueChatGLM)调用**
+```
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.0.3"
 ```
 
 ## 1.Using NTP Server Time
