@@ -18,4 +18,6 @@ public class ConstantValue {
 
     public final static float temp_float = 0.9f;
     public final static float top_p_float = 0.7f;
+    public final static String API_KEY_FILE = "chatglm_api_key.txt";
+
 }

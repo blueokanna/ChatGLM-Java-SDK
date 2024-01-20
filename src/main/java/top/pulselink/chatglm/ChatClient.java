@@ -1,5 +1,10 @@
 package top.pulselink.chatglm;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 import static top.pulselink.chatglm.ConstantValue.*;
 
@@ -41,17 +46,40 @@ public class ChatClient {
         }
     }
 
+    private static String loadApiKey() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(API_KEY_FILE))) {
+            return reader.readLine();
+        } catch (IOException e) {
+            return null; // If the file doesn't exist or an error occurs, return null
+        }
+    }
+
+    private static void saveApiKey(String apiKey) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(API_KEY_FILE))) {
+            writer.write(apiKey);
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception according to your needs
+        }
+    }
+
     public String getResponseMessage() {
         return ResponseMessage;
     }
 
     public static void main(String[] args) {
-        final String apiKeyss = "xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxx"; //Change your own API key,You can find it from https://open.bigmodel.cn/usercenter/apikeys
 
-        Scanner scan = new Scanner(System.in); //Entering Content with Scanner
+        Scanner scanner = new Scanner(System.in);
 
-        while (scan.hasNext()) {
-            String userInput = scan.nextLine();
+        String apiKeyss = loadApiKey();
+
+        if (apiKeyss == null) {
+            System.out.println("Enter your API key:");
+            apiKeyss = scanner.nextLine();
+            saveApiKey(apiKeyss);
+        }
+        while (scanner.hasNext()) {
+            String userInput = scanner.nextLine();
+
             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
             chats.AsyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
             System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
