@@ -2,25 +2,25 @@
 >
 > ChatGLM4-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
 ----
-## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.0.
+## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.1.
 
 **Java Maven Dependency (BlueChatGLM)**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
 **Java Gradle (BlueChatGLM)**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.0'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1'
 ```
 
 **Java sbt (BlueChatGLM)**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.0"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
 ```
 
 ## 1.Utils Tools
