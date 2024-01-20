@@ -1,17 +1,14 @@
-# Zhipu AI Large Model Custom ChatGLM-Java-SDK - [中文文档](https://github.com/AstralQuanta/ChatGLM-Java-SDK/blob/main/README_zh.md)
+# Zhipu AI Large Model Custom ChatGLM4-Java-SDK - [中文文档](https://github.com/AstralQuanta/ChatGLM-Java-SDK/blob/main/README_zh.md)
 >
-> ChatGLM-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
+> ChatGLM4-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
 ----
-## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.0.3.
-
-**Java Maven Dependency (BlueChatGLM)**
-> Please use **Java Maven** Library✔️. **Java Ant** Using this seems to give an error.❌
+## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.0.
 
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.0.3</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
@@ -49,18 +46,16 @@ It provides highly accurate and secure time information via time servers on the 
 
 ## 2. Easy-to-use SDK
 
-**The only constant quantity in this project：`algorithm = HmacSHA256`**
-
 ### 2.1 Calling and Using the Maven Library
 >
 > Using this project **SDK** is less difficult 🤩. The following three examples use **Scanner** to enter your question and the console will output **ChatGLM** to answer it：
 
-Call **SSE request**, the sample code is as follows `(This example is more friendly to English output, Chinese output has problems)`:
+Call **SSE request**, the sample code is as follows:
 
 ```
 public class Main{
     public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //Replace the API Key with your own
+        String apiKeyss = //Replace your own API key,You can find it from https://open.bigmodel.cn/usercenter/apikeys
 
         Scanner scan = new Scanner(System.in); //Entering Content with Scanner
         while (scan.hasNext()) {
@@ -78,7 +73,7 @@ Call **asynchronous request**, sample code is as follows:
 ```
 public class Main{
     public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //Replace the API Key with your own
+        String apiKeyss = "Your_API_Key"; //Replace your own API key,You can find it from https://open.bigmodel.cn/usercenter/apikeys
 
         Scanner scan = new Scanner(System.in); //Entering Content with Scanner
         while (scan.hasNext()) {
@@ -96,7 +91,7 @@ Call **synchronisation request**, sample code is as follows:
 ```
 public class Main{
     public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //Replace the API Key with your own
+        String apiKeyss = "Your_API_Key"; //Replace your own API key,You can find it from https://open.bigmodel.cn/usercenter/apikeys
 
         Scanner scan = new Scanner(System.in); //Entering Content with Scanner
         while (scan.hasNext()) {
@@ -111,7 +106,7 @@ public class Main{
 
 ### 2.2 Senior Developer👨🏼‍💻
 
-For senior developers, this version is only a simple development, there are `temperature`, `top_p`, `incremental`, `return_type` and other parameters have not been added to this development. We will follow up with the development in the future, and of course we would like to ask other developers to provide technical support for this project! Thank you in advance!
+For senior developers, we will follow up the development work in the future, the current version is the language model version of ChatGLM-4, and has solved the problem of SSE Chinese input can not be read, of course, we also hope that other developers to provide technical support for this project! Thank you in advance!
 
 ----
 
@@ -175,90 +170,122 @@ protected boolean verifyJWT(String jwt) {
 The request methods used in **Synchronous Request** and **SSE Request** are as follows (inside **Header**):
 
 ```
-connection.setRequestMethod("POST");
-connection.setRequestProperty("Accept", "application/json");        //synchronisation request
-//connection.setRequestProperty("Accept", "text/event-stream");    //SSE request
-connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-connection.setRequestProperty("Authorization", "Bearer " + token);
+HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(jsonRequestBody))
+                .build();
 ```
 
-Use the **gson** library to make **Payload** write to **JSON**.
+Make **jsonRequestBody** that using **POST** method which context like below (Synchronous with `false of Stream`):
 
 ```
-JsonObject payloadMessage = new JsonObject();
-payloadMessage.addProperty("prompt", message); //Adding Properties
+String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":false,\"temperture\":%f,\"top_p\":%f}", Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
 ```
 
-> Generally prompt -> message is enough, if you want to add other parts of the attributes can also be added here, such as adding about **temperature**, **top_p**:
+#### SSE Streaming Transfer Model
+
+Here we will use the **concurrent.Flow** method to solve the problem of SSE stream processing:
 
 ```
-payloadMessage.addProperty("temperature", 0.6);
-payloadMessage.addProperty("top_p", 0.7);
-```
+public class SSESubscriber implements Flow.Subscriber<String> {
 
-#### SSE Streaming Transfer Model (SSEInvokeModel: currently imperfect, with some bugs, not recommended)
+        private Flow.Subscription subscription;
 
-What is used here is a per **SSE streaming** generation, which generally fetches the resulting content containing `:event` , `request_id` and `data`. For the data after `add`, it is spliced together and here it is sorted using the queue method:
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+            subscription.request(1);
+        }
 
-```
-//Queue: BlockingQueue<String> resultQueue = new ArrayBlockingQueue<>(2000);
-//Add your 'Content' data to the queue: resultQueue.offer(dataBuilder.toString());
+        @Override
+        public void onNext(String item) {
+            if (item.startsWith("data: ")) {
+                String jsonData = item.substring("data: ".length());
+                //System.out.println("Received SSE item: " + jsonData); //Debug
 
-/*
-data：Content）
-*/
-            String[] pair = keyValue.split(":");
-            if (pair.length == 2) {
-                String key = pair[0].trim();
-                String value = pair[1].trim();
-                eventData.addProperty(key, value);
-            }
-```
-
-For `meta`, you can add it later, the code example is as follows:
-
-```
-        if (line.startsWith("data: ")) {  // (line = reader.readLine()) != null
-            String data = line.substring(6).trim();
-            JsonObject eventData = parseEventData(data);
-
-            String eventType = eventData.has("event") ? eventData.get("event").getAsString() : null;
-            String eventDataString = eventData.has("data") ? eventData.get("data").getAsString() : null;
-
-            if ("add".equals(eventType)) {          //add event
-                System.out.println("Add Event: " + eventDataString);
-            } else if ("error".equals(eventType) || "interrupted".equals(eventType)) {
-                System.out.println("Error or Interrupted Event: " + eventDataString);
-            } else if ("finish".equals(eventType)) {
-                System.out.println("Finish Event: " + eventDataString);
-
-                if (eventData.has("meta")) {        // meta data
-                    JsonObject meta = eventData.getAsJsonObject("meta");
-                    System.out.println("Meta: " + meta.toString());
-
-                    if (meta.has("usage")) {         //Output of usage (number of Token)
-                        JsonObject usage = meta.getAsJsonObject("usage");
-                        System.out.println("Usage: " + usage.toString());
-                        System.out.println("Prompt Tokens: " + usage.get("prompt_tokens").getAsInt());
-                        System.out.println("Completion Tokens: " + usage.get("completion_tokens").getAsInt());
-                        System.out.println("Total Tokens: " + usage.get("total_tokens").getAsInt());
-                    }
+                if (!jsonData.equals("[DONE]")) {
+                    responseDataBody(jsonData.replaceAll("Invalid JSON format: \\[\"DONE\"\\]", ""));
                 }
             }
+            subscription.request(1);
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            System.out.println("Error in SSESubscriber: " + throwable.getMessage());
+        }
+
+        @Override
+        public void onComplete() {
+            //System.out.println("SSESubscriber completed");
+        }
+    }
+```
+**And the calling to receive chatglm-4 message here:**
+```
+try (JsonReader jsonReader = new JsonReader(new StringReader(responseData))) {
+            jsonReader.setLenient(true);
+            JsonElement jsonElement = JsonParser.parseReader(jsonReader);
+
+            if (jsonElement.isJsonObject()) {
+                JsonObject jsonResponse = jsonElement.getAsJsonObject();
+
+                if (jsonResponse.has("choices")) {
+                    JsonArray choices = jsonResponse.getAsJsonArray("choices");
+
+                    if (!choices.isEmpty()) {
+                        JsonObject choice = choices.get(0).getAsJsonObject();
+
+                        if (choice.has("delta")) {
+                            JsonObject delta = choice.getAsJsonObject("delta");
+
+                            if (delta.has("content")) {
+                                String content = delta.get("content").getAsString();
+                                getMessage = convertUnicodeEmojis(content);
+                                getMessage = getMessage.replaceAll("\"", "")
+                                        .replaceAll("\\\\n\\\\n", "\n")
+                                        .replaceAll("\\\\nn", "\n")
+                                        .replaceAll("\\n", "\n")
+                                        .replaceAll("\\\\", "")
+                                        .replaceAll("\\\\", "");
+
+                                for (char c : getMessage.toCharArray()) {
+                                    charQueue.offer(c);
+                                }
+
+                                while (!charQueue.isEmpty()) {
+                                    queueResult.append(charQueue.poll());
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                System.out.println("Invalid JSON format: " + jsonElement);
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading JSON: " + e.getMessage());
         }
 ```
 
-#### Asynchronous Request Transfer Model (AsyncInvokeModel: recommended)
+
+#### Asynchronous Request Transfer Model
 
 The `HTTPRequest` method is used here to receive the message:
 
 ```
-HttpRequest request = HttpRequest.newBuilder()
+String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":true,\"temperture\":%f,\"top_p\":%f}",
+                Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
+
+        HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
-                .header("Accept", "application/json")  //request header
+                .header("Accept", "application/json")
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .header("Authorization", "Bearer " + token)
-                .POST(HttpRequest.BodyPublishers.ofString("{\"prompt\":\"" + message + "\"}"))  //Payload section -> corresponds to the information entered by the user
+                .POST(HttpRequest.BodyPublishers.ofString(jsonRequestBody))
                 .build();
 ```
 
@@ -269,81 +296,104 @@ The overall use is to send messages asynchronously, which has the advantage of r
                         processResponseData(response.body());
                         return CompletableFuture.completedFuture(response.body());
                     } else {
-
-                        JsonObject errorResponse = JsonParser.parseString(response.body()).getAsJsonObject(); //is not 200, an error message is returned
-                        if (errorResponse.has("code") && errorResponse.has("msg")) {
-                            int code = errorResponse.get("code").getAsInt();
-                            String msg = errorResponse.get("msg").getAsString();
-                            throw new RuntimeException("HTTP request failure, Code: " + code + ", Message: " + msg);
+                        JsonObject errorResponse = JsonParser.parseString(response.body()).getAsJsonObject();
+                        if (errorResponse.has("id") && errorResponse.has("task_status")) {
+                            int code = errorResponse.get("id").getAsInt();
+                            String status = errorResponse.get("task_status").getAsString();
+                            throw new RuntimeException("HTTP request failure, Your request id is: " + code + ", Status: " + status);
                         } else {
                             return CompletableFuture.failedFuture(new RuntimeException("HTTP request failure, Code: " + response.statusCode()));
                         }
-                    }        
+                    }
+                });
 ```
 
 When you get the **Task_id** you need, make a **GET** request query (part of the code):
 
 ```
                 ..... .sendAsync(HttpRequest.newBuilder()
-                        .uri(URI.create(checkUrl + TaskID)) //Add Taskid to the query address
+                        .uri(URI.create(checkUrl + ID))
                         .header("Accept", "application/json")
                         .header("Content-Type", "application/json;charset=UTF-8")
                         .header("Authorization", "Bearer " + token)
                         .GET()
                         .build(), HttpResponse.BodyHandlers.ofString())
-                .thenCompose(response -> {......
-                )};
+                .thenCompose(response -> {
+                    if (response.statusCode() == 200) {
+                        return CompletableFuture.completedFuture(response.body());
+                    } else {
+                        return CompletableFuture.failedFuture(new RuntimeException("HTTP request failure, Code: " + response.statusCode()));
+                    }
+                });
 ```
 
 Finally the extraction by **JSON**, the sample extraction code is:
 
 ```
-JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
-            if (jsonResponse.has("data")) {
-                JsonObject data = jsonResponse.getAsJsonObject("data");   //Getting inside data
-                if (data.has("choices")) {
-                    JsonArray choices = data.getAsJsonArray("choices");  //choices to get the message
-                    if (!choices.isEmpty()) {
-                        JsonObject choice = choices.get(0).getAsJsonObject(); //Starting from 0
-                        if (choice.has("content")) {
-                            String message = choice.get("content").getAsString()
-                                    .replaceAll("\"", "")
-                                    .replace("\\", "")
-                                    .replace("\\n\\n", "\n");
-                            message = convertUnicodeEmojis(message);
-                            getMessage = message;                      //Assign message, provide external link
+try {
+            JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
+
+            if (jsonResponse.has("choices")) {
+                JsonArray choices = jsonResponse.getAsJsonArray("choices");
+
+                if (!choices.isEmpty()) {
+                    JsonObject choice = choices.get(0).getAsJsonObject();
+
+                    if (choice.has("message")) {
+                        JsonObject message = choice.getAsJsonObject("message");
+
+                        if (message.has("content")) {
+                            String content = message.get("content").getAsString();
+                            getMessage = convertUnicodeEmojis(content);
+                            getMessage = getMessage.replaceAll("\"", "")
+                                    .replaceAll("\\\\n\\\\n", "\n")
+                                    .replaceAll("\\\\nn", "\n")
+                                    .replaceAll("\\n", "\n")
+                                    .replaceAll("\\\\", "")
+                                    .replaceAll("\\\\", "");
                         }
                     }
                 }
             }
+        } catch (JsonSyntaxException e) {
+            System.out.println("Error processing task status: " + e.getMessage());
+        }
 ```
 
-#### Synchronised request transfer model (InvokeModel: recommended)
+#### Synchronised request transfer model
 
-Compared to **SSE streaming**, this **synchronous request** is quite good, running without missing characters **BUG**, speed compared to **asynchronous request** is not bad, the disadvantage of synchronous is that the amount of requests is too large may block the thread (`single-threaded`)
+**synchronous request** is quite good, speed compared to **asynchronous request** is not bad, the disadvantage of synchronous is that the amount of requests is too large may block the thread (`single-threaded`)
 
 Here directly on the handling of information on this piece, this piece is parsing **JSON ** there is nothing else, sample code:
 
 ```
-if (isJsonResponse(connection)) {
+ try {
             JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
-            if (jsonResponse.has("data")) {  
-                JsonObject data = jsonResponse.getAsJsonObject("data");      
-                if (data.has("choices")) {
-                    JsonArray choices = data.getAsJsonArray("choices");      
-                    for (int i = 0; i < choices.size(); i++) {           
-                        JsonObject choice = choices.get(i).getAsJsonObject();
-                        if (choice.has("content")) {
-                            String Message = choice.get("content").getAsString(); 
-                            Message = Message.replaceAll("\"", "");
-                            Message = Message.replace("\\n\\n", "\n");
-                            Message = Message.replace("\\", "");
-                            Message = convertUnicodeEmojis(Message);  
-                            contentMessage = Message;
+
+            if (jsonResponse.has("choices")) {
+                JsonArray choices = jsonResponse.getAsJsonArray("choices");
+
+                if (!choices.isEmpty()) {
+                    JsonObject choice = choices.get(0).getAsJsonObject();
+
+                    if (choice.has("message")) {
+                        JsonObject message = choice.getAsJsonObject("message");
+
+                        if (message.has("content")) {
+                            String content = message.get("content").getAsString();
+                            getMessage = convertUnicodeEmojis(content);
+                            getMessage = getMessage.replaceAll("\"", "")
+                                    .replaceAll("\\\\n\\\\n", "\n")
+                                    .replaceAll("\\\\nn", "\n")
+                                    .replaceAll("\\n", "\n")
+                                    .replaceAll("\\\\", "")
+                                    .replaceAll("\\\\", "");
                         }
                     }
                 }
             }
+        } catch (JsonSyntaxException e) {
+            System.out.println("Error processing task status: " + e.getMessage());
         }
 ```
 
@@ -355,4 +405,4 @@ if (isJsonResponse(connection)) {
 > Thank you for opening my project, this is a third party development ChatGLM SDK development project, I am also trying to develop and update this project, the official development is certainly much more perfect than my personal development, of course, I personally will continue to insist on the development of the time when the use of the efficiency of the official better than the official time, I think that this project I think that this project is a successful learning experience. I will continue to update this project. I also hope that more and more people will participate together 🚀 Thank you for seeing it to the end!😆👏
 
 ----
-**Last thanks to the jar developers of gson and the jar developers of Apache** 👩‍💻👨‍💻
+Last thanks to the jar developers of **gson** 👩‍💻👨‍💻
