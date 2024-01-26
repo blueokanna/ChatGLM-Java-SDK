@@ -1,5 +1,6 @@
 package top.pulselink.chatglm;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,19 +19,23 @@ public class AsyncInvokeModel {
 
     private String getMessage = "";
     private String ID = "";
+    private String jsonRequestBody;
+    private final HistoryMessage messages = new HistoryMessage();
 
     public CompletableFuture<String> asyncRequest(String token, String input, String url, String checkUrl) {
         return asyncInvokeRequestMethod(token, input, url)
                 .thenCompose(taskId -> waitForTaskToComplete(token, checkUrl))
-                .thenApply(responseData -> processTaskStatus(responseData))
+                .thenApply(responseData -> processTaskStatus(responseData, input))
                 .exceptionally(ex -> "HTTP request failed with status code: " + ex.getMessage());
     }
 
     private CompletableFuture<String> asyncInvokeRequestMethod(String token, String message, String apiUrl) {
 
-        String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":true,\"temperture\":%f,\"top_p\":%f}",
-                Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
+        jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},%s], \"stream\":false,\"temperture\":%f,\"top_p\":%f}",
+                Language_Model, system_role, system_content, lastMessages(message), temp_float, top_p_float);
 
+        //System.out.println(jsonRequestBody);  //Debug
+        //System.out.println(messages.addHistoryToFile(user_role, message)); //Debug
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
                 .header("Accept", "application/json")
@@ -56,6 +61,7 @@ public class AsyncInvokeModel {
                         }
                     }
                 });
+
     }
 
     private CompletableFuture<String> asyncInvokeGetMethod(String token, String checkUrl) {
@@ -113,7 +119,7 @@ public class AsyncInvokeModel {
         }
     }
 
-    private String processTaskStatus(String responseData) {
+    private String processTaskStatus(String responseData, String userMessage) {
         try {
             JsonObject jsonResponse = JsonParser.parseString(responseData).getAsJsonObject();
 
@@ -135,6 +141,9 @@ public class AsyncInvokeModel {
                                     .replaceAll("\\n", "\n")
                                     .replaceAll("\\\\", "")
                                     .replaceAll("\\\\", "");
+
+                            messages.addHistoryToFile(user_role, userMessage);
+                            messages.addHistoryToFile(assistant_role, getMessage);
                         }
                     }
                 }
@@ -158,6 +167,27 @@ public class AsyncInvokeModel {
         }
         matcher.appendTail(result);
         return result.toString();
+    }
+
+    private String setInputMessage() {
+        String message = messages.loadHistoryFromFile();
+        if (message != null) {
+            return messages.loadHistoryFromFile();
+        } else {
+            return null;
+        }
+    }
+
+    private String lastMessages(String userMessage) {
+        JsonObject input = new JsonObject();
+        input.addProperty("role", user_role);
+        input.addProperty("content", userMessage);
+        String texts = new Gson().toJson(input);
+
+        String regex = ",(?=\\s*\\})";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(setInputMessage() + texts);
+        return matcher.replaceAll("");
     }
 
     public String getTaskID() {

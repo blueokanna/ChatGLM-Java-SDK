@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Scanner;
 import static top.pulselink.chatglm.ConstantValue.*;
 
-public class ChatClient {
+public class ChatClient{
 
     private static APIKeys apiKeys;
     private static String jwtToken;
@@ -46,7 +46,7 @@ public class ChatClient {
         }
     }
 
-    private static String loadApiKey() {
+    private static String loadApiKey() {                    //Load API Key
         try (BufferedReader reader = new BufferedReader(new FileReader(API_KEY_FILE))) {
             return reader.readLine();
         } catch (IOException e) {
@@ -54,7 +54,7 @@ public class ChatClient {
         }
     }
 
-    private static void saveApiKey(String apiKey) {
+    private static void saveApiKey(String apiKey) {         //Save API Key
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(API_KEY_FILE))) {
             writer.write(apiKey);
         } catch (IOException e) {
@@ -67,23 +67,24 @@ public class ChatClient {
     }
 
     public static void main(String[] args) {
-
         Scanner scanner = new Scanner(System.in);
-
         String apiKeyss = loadApiKey();
 
         if (apiKeyss == null) {
-            System.out.println("Enter your API key:");
+            System.out.println("请输入你的 API 密钥:");
             apiKeyss = scanner.nextLine();
             saveApiKey(apiKeyss);
         }
+        System.out.print("请输入对话:\n你: ");
         while (scanner.hasNext()) {
+            ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
             String userInput = scanner.nextLine();
 
-            ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
-            chats.AsyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
-            System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
-            System.out.println();
+            chats.SSEInvoke(userInput);                     //Assign the question you entered to the synchronised request
+            System.out.print("莉莉娅: " + chats.getResponseMessage());  //Print out ChatGLM's response
+            System.out.println("\n");
+            System.out.print("你: ");
         }
     }
+
 }

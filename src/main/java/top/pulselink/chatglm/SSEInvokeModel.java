@@ -23,16 +23,18 @@ public class SSEInvokeModel {
     private BlockingQueue<Character> charQueue = new LinkedBlockingQueue<>();
     private volatile String getMessage = "";
     private volatile StringBuilder queueResult = new StringBuilder();
+    private String jsonRequestBody;
+    private final HistoryMessage messages = new HistoryMessage();
 
     public synchronized CompletableFuture<String> SSERequest(String token, String input, String url) {
         return SSEInvokeRequestMethod(token, input, url)
-                .thenApply(this::responseDataBody)
+                .thenApply(responseData -> responseDataBody(responseData, input))
                 .exceptionally(ex -> "HTTP request failed with status code: " + ex.getMessage());
     }
 
     private CompletableFuture<String> SSEInvokeRequestMethod(String token, String message, String apiUrl) {
-        String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},{\"role\":\"%s\",\"content\":\"%s\"}], \"stream\":true,\"temperture\":%f,\"top_p\":%f}",
-                Language_Model, system_role, system_content, user_role, message, temp_float, top_p_float);
+        jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role\":\"%s\",\"content\":\"%s\"},%s], \"stream\":true,\"temperture\":%f,\"top_p\":%f}",
+                Language_Model, system_role, system_content, lastMessages(message), temp_float, top_p_float);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
@@ -43,11 +45,11 @@ public class SSEInvokeModel {
                 .build();
 
         return HttpClient.newHttpClient()
-                .sendAsync(request, HttpResponse.BodyHandlers.fromLineSubscriber(new SSESubscriber()))
+                .sendAsync(request, HttpResponse.BodyHandlers.fromLineSubscriber(new SSESubscriber(message)))
                 .thenApply(response -> null);
     }
 
-    private synchronized String responseDataBody(String responseData) {
+    private synchronized String responseDataBody(String responseData, String userMessage) {
         try (JsonReader jsonReader = new JsonReader(new StringReader(responseData))) {
             jsonReader.setLenient(true);
             JsonElement jsonElement = JsonParser.parseReader(jsonReader);
@@ -78,9 +80,14 @@ public class SSEInvokeModel {
                                     charQueue.offer(c);
                                 }
 
-                                while (!charQueue.isEmpty()) {
-                                    queueResult.append(charQueue.poll());
-                                }
+                                do {
+                                    if (!charQueue.isEmpty()) {
+                                        queueResult.append(charQueue.poll());
+                                    } else {
+                                        messages.addHistoryToFile(user_role, userMessage);
+                                        messages.addHistoryToFile(assistant_role, queueResult.toString());
+                                    }
+                                } while (!charQueue.isEmpty());
                             }
                         }
                     }
@@ -91,7 +98,6 @@ public class SSEInvokeModel {
         } catch (IOException e) {
             System.out.println("Error reading JSON: " + e.getMessage());
         }
-
         return queueResult.toString();
     }
 
@@ -114,9 +120,35 @@ public class SSEInvokeModel {
         return queueResult.toString();
     }
 
+    private String setInputMessage() {
+        String message = messages.loadHistoryFromFile();
+        if (message != null) {
+            return messages.loadHistoryFromFile();
+        } else {
+            return null;
+        }
+    }
+
+    private String lastMessages(String userMessage) {
+        JsonObject input = new JsonObject();
+        input.addProperty("role", user_role);
+        input.addProperty("content", userMessage);
+        String texts = new Gson().toJson(input);
+
+        String regex = ",(?=\\s*\\})";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(setInputMessage() + texts);
+        return matcher.replaceAll("");
+    }
+
     public class SSESubscriber implements Flow.Subscriber<String> {
 
         private Flow.Subscription subscription;
+        private String userMessage;
+
+        public SSESubscriber(String userMessage) {
+            this.userMessage = userMessage;
+        }
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
@@ -131,7 +163,7 @@ public class SSEInvokeModel {
                 //System.out.println("Received SSE item: " + jsonData); //Debug
 
                 if (!jsonData.equals("[DONE]")) {
-                    responseDataBody(jsonData.replaceAll("Invalid JSON format: \\[\"DONE\"\\]", ""));
+                    responseDataBody(jsonData.replaceAll("Invalid JSON format: \\[\"DONE\"\\]", ""), userMessage);
                 }
             }
             subscription.request(1);
@@ -146,6 +178,7 @@ public class SSEInvokeModel {
         public void onComplete() {
             //System.out.println("SSESubscriber completed");
         }
+
     }
 
 }
