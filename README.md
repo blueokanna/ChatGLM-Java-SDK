@@ -2,28 +2,30 @@
 >
 > ChatGLM4-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
 ----
-## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.0.
+## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.1.
 
 **Java Maven Dependency (BlueChatGLM)**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
 **Java Gradle (BlueChatGLM)**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.0'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1'
 ```
 
 **Java sbt (BlueChatGLM)**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.0"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
 ```
 
-## 1.Using NTP Server Time
+## 1.Utils Tools
+
+### 1.1 NTP Time Server
 
 It provides highly accurate and secure time information via time servers on the Internet or LAN, and it is critical to ensure that all devices use the same time. The application here is for `JWT` authentication using the
 
@@ -52,6 +54,27 @@ It provides highly accurate and secure time information via time servers on the 
         }
     }
 ```
+### 1.2 Store API Key
+
+Saving Api key and store it in local file which call `chatglm_api_key` txt file:
+
+```
+    private static String loadApiKey() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(API_KEY_FILE))) {
+            return reader.readLine();
+        } catch (IOException e) {
+            return null; // If the file doesn't exist or an error occurs, return null
+        }
+    }
+
+    private static void saveApiKey(String apiKey) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(API_KEY_FILE))) {
+            writer.write(apiKey);
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception according to your needs
+        }
+    }
+```
 
 ----
 
@@ -64,55 +87,70 @@ It provides highly accurate and secure time information via time servers on the 
 Call **SSE request**, the sample code is as follows:
 
 ```
-public class Main{
-    public static void main(String[] args) {
-        String apiKeyss = //Replace your own API key,You can find it from https://open.bigmodel.cn/usercenter/apikeys
+public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String apiKeyss = loadApiKey();                          //load api key if exist
 
-        Scanner scan = new Scanner(System.in); //Entering Content with Scanner
-        while (scan.hasNext()) {
-             String userInput = scan.nextLine();
-             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
-             chats.SSEInvoke(userInput);                       //Assign the question you entered to the SSE request
-             System.out.println(chats.getResponseMessage());   //Print out ChatGLM's response
+        if (apiKeyss == null) {                                  //if api key is not exist create txt file to store key in local file
+            System.out.println("Enter your API key:");
+            apiKeyss = scanner.nextLine();
+            saveApiKey(apiKeyss);
+        }
+        while (scanner.hasNext()) {
+            String userInput = scanner.nextLine();
+
+            ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+            chats.SSEInvoke(userInput);                     //Assign the question you entered to the synchronised request
+            System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
+            System.out.println();
         }
     }
-}
 ```
 
 Call **asynchronous request**, sample code is as follows:
 
 ```
-public class Main{
-    public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //Replace your own API key,You can find it from https://open.bigmodel.cn/usercenter/apikeys
+public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String apiKeyss = loadApiKey();                          //load api key if exist
 
-        Scanner scan = new Scanner(System.in); //Entering Content with Scanner
-        while (scan.hasNext()) {
-             String userInput = scan.nextLine();
-             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
-             chats.AsyncInvoke(userInput);                    //Assign the question you entered to the asynchronous request
-             System.out.println(chats.getResponseMessage());  //Print out ChatGLM's response
+        if (apiKeyss == null) {                                  //if api key is not exist create txt file to store key in local file
+            System.out.println("Enter your API key:");
+            apiKeyss = scanner.nextLine();
+            saveApiKey(apiKeyss);
+        }
+        while (scanner.hasNext()) {
+            String userInput = scanner.nextLine();
+
+            ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+            chats.AsyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
+            System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
+            System.out.println();
         }
     }
-}
 ```
 
 Call **synchronisation request**, sample code is as follows:
 
 ```
-public class Main{
-    public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //Replace your own API key,You can find it from https://open.bigmodel.cn/usercenter/apikeys
+public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String apiKeyss = loadApiKey();                          //load api key if exist
 
-        Scanner scan = new Scanner(System.in); //Entering Content with Scanner
-        while (scan.hasNext()) {
-             String userInput = scan.nextLine();
-             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
-             chats.SyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
-             System.out.println(chats.getResponseMessage());  //Print out ChatGLM's response
+        if (apiKeyss == null) {                                  //if api key is not exist create txt file to store key in local file
+            System.out.println("Enter your API key:");
+            apiKeyss = scanner.nextLine();
+            saveApiKey(apiKeyss);
+        }
+        while (scanner.hasNext()) {
+            String userInput = scanner.nextLine();
+
+            ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+            chats.SyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
+            System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
+            System.out.println();
         }
     }
-}
 ```
 
 ### 2.2 Senior Developer👨🏼‍💻

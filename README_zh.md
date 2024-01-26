@@ -2,29 +2,31 @@
 >
 > 此项目是由 **Java** 的 **JDK17** 的长期版本开发
 ----
-## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，最后一个全新版本是 **0.1.0**
+## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，最后一个全新版本是 **0.1.1**
 
 **Java Maven Dependency (BlueChatGLM)调用**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
 **Java Gradle (BlueChatGLM)调用**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.0'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1'
 ```
 
 **Java sbt (BlueChatGLM)调用**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.0"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
 ```
 
 
-## 1.使用 NTP 服务器时间
+## 1. Utils 工具
+
+### 1.1 NTP 网络时间服务器
 
 它通过互联网或局域网上的时间服务器来提供高精度，高安全的时间信息，确保所有设备都使用相同的时间是关键的。这里的应用是对于 `JWT` 验证使用
 
@@ -53,6 +55,27 @@ libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.0"
         }
     }
 ```
+### 1.2 保存 API 密钥
+
+保存 **API** 密钥并将其存储在调用 `chatglm_api_key` txt 文件的本地文件中：
+
+```
+    private static String loadApiKey() {                    //加载 API 密钥
+        try (BufferedReader reader = new BufferedReader(new FileReader(API_KEY_FILE))) {
+            return reader.readLine();
+        } catch (IOException e) {
+            return null; // If the file doesn't exist or an error occurs, return null
+        }
+    }
+
+    private static void saveApiKey(String apiKey) {           //保存 API 密钥
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(API_KEY_FILE))) {
+            writer.write(apiKey);
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception according to your needs
+        }
+    }
+```
 
 ----
 
@@ -65,55 +88,71 @@ libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.0"
 调用**SSE请求**，示例代码如下 (目前已解决无法输入中文等问题，可以正常使用)：
 
 ```
-public class Main{
-    public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //替换成自己的 API Key
+public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String apiKeyss = loadApiKey();                          //加载 API 密钥
 
-        Scanner scan = new Scanner(System.in); //利用 Scanner 输入内容
-        while (scan.hasNext()) {
-             String userInput = scan.nextLine();
+        if (apiKeyss == null) {                                  //如果不存在文件或者密钥为空，则需要输入密钥
+            System.out.println("Enter your API key:");
+            apiKeyss = scanner.nextLine();
+            saveApiKey(apiKeyss);
+        }
+
+        while (scanner.hasNext()) {
+            String userInput = scanner.nextLine();
+
              ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
-             chats.SSEInvoke(userInput);                    //将你输入的问题赋值给 SSE 请求的
-             System.out.println(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+             chats.SSEInvoke(userInput);                    //将你输入的问题赋值给流式请求的
+             System.out.print(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+            System.out.println();
         }
     }
-}
 ```
 
 调用**异步请求**，示例代码如下：
 
 ```
-public class Main{
-    public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //替换成自己的 API Key
+public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String apiKeyss = loadApiKey();                          //加载 API 密钥
 
-        Scanner scan = new Scanner(System.in); //利用 Scanner 输入内容
-        while (scan.hasNext()) {
-             String userInput = scan.nextLine();
+        if (apiKeyss == null) {                                  //如果不存在文件或者密钥为空，则需要输入密钥
+            System.out.println("Enter your API key:");
+            apiKeyss = scanner.nextLine();
+            saveApiKey(apiKeyss);
+        }
+        while (scanner.hasNext()) {
+            String userInput = scanner.nextLine();
+
              ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
              chats.AsyncInvoke(userInput);                    //将你输入的问题赋值给异步请求的
-             System.out.println(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+             System.out.print(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+            System.out.println();
         }
     }
-}
 ```
 
 调用**同步请求**，示例代码如下：
 
 ```
-public class Main{
-    public static void main(String[] args) {
-        String apiKeyss = "Your_API_Key"; //替换成自己的 API Key
+public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String apiKeyss = loadApiKey();                          //加载 API 密钥
 
-        Scanner scan = new Scanner(System.in); //利用 Scanner 输入内容
-        while (scan.hasNext()) {
-             String userInput = scan.nextLine();
+        if (apiKeyss == null) {                                  //如果不存在文件或者密钥为空，则需要输入密钥
+            System.out.println("Enter your API key:");
+            apiKeyss = scanner.nextLine();
+            saveApiKey(apiKeyss);
+        }
+        while (scanner.hasNext()) {
+            String userInput = scanner.nextLine();
+
              ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
              chats.SyncInvoke(userInput);                    //将你输入的问题赋值给同步请求的
-             System.out.println(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+             System.out.print(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
+            System.out.println();
         }
     }
-}
 ```
 
 ### 2.2 资深开发者👨🏼‍💻
