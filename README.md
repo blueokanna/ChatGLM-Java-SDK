@@ -1,26 +1,26 @@
 # Zhipu AI Large Model Custom ChatGLM4-Java-SDK - [中文文档](https://github.com/AstralQuanta/ChatGLM-Java-SDK/blob/main/README_zh.md)
 >
-> ChatGLM4-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
+> ChatGLM4-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK11**.
 ----
-## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.1.
+## :triangular_flag_on_post: The Latest Version is 0.1.1-Beta.
 
 **Java Maven Dependency (BlueChatGLM)**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.1-Beta</version>
 </dependency>
 ```
 
 **Java Gradle (BlueChatGLM)**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1-Beta'
 ```
 
 **Java sbt (BlueChatGLM)**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1-Beta"
 ```
 
 ## 1.Utils Tools
@@ -75,6 +75,40 @@ Saving Api key and store it in local file which call `chatglm_api_key` txt file:
         }
     }
 ```
+
+### 1.3 Save Chat Content file
+
+User chats and AI replies will be stored in `chatglm_history.txt` and chat content **txt** file will be deleted at the end of each session.
+
+```
+private void createHistoryFileIfNotExists() {
+    Path filePath = Paths.get(historyFilePath);
+    if (Files.exists(filePath)) {
+        try {
+            Files.delete(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    try {
+        Files.createFile(filePath);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Files.deleteIfExists(Paths.get(historyFilePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
+    }
+```
+
 
 ----
 
