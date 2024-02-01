@@ -1,26 +1,26 @@
 # 智谱 AI 大模型自定义 ChatGLM4-Java-SDK - [English Doc](https://github.com/AstralQuanta/ChatGLM-Java-SDK/blob/main/README.md)
 >
-> 此项目是由 **Java** 的 **JDK17** 的长期版本开发
+> 此项目是由 **Java** 的 **JDK11** 的长期版本开发
 ----
-## ⚠️请注意😟！原本 **0.0.1** 的已经不再适用了，最后一个全新版本是 **0.1.1**
+##  :triangular_flag_on_post: 当前 **ChatGLM Java SDK** 最新版本为 0.1.1-Beta。
 
 **Java Maven Dependency (BlueChatGLM)调用**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.1-Beta</version>
 </dependency>
 ```
 
 **Java Gradle (BlueChatGLM)调用**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1-Beta'
 ```
 
 **Java sbt (BlueChatGLM)调用**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1-Beta"
 ```
 
 
@@ -74,6 +74,38 @@ libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
         } catch (IOException e) {
             e.printStackTrace(); // Handle the exception according to your needs
         }
+    }
+```
+
+### 1.3 保存聊天内容文件
+
+用户聊天和 **ChatGLM** 回复将保存在`chatglm_history.txt`中，聊天内容**txt**文件将在每个会话结束时删除。
+```
+private void createHistoryFileIfNotExists() {                //检查是否存在文件
+    Path filePath = Paths.get(historyFilePath);
+    if (Files.exists(filePath)) {
+        try {
+            Files.delete(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    try {
+        Files.createFile(filePath);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+    private void registerShutdownHook() {                      //关闭程序的时候删除历史聊天记录
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Files.deleteIfExists(Paths.get(historyFilePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
     }
 ```
 
@@ -157,7 +189,7 @@ public static void main(String[] args) {
 
 ### 2.2 资深开发者👨🏼‍💻
 
-**对于资深开发者，我们会后续跟进开发工作，目前的版本是ChatGLM-4的语言模型版本，并且已经解决了SSE中文输入看不懂的问题，当然我们也希望其他的 开发商为本项目提供技术支持！ 先感谢您！**
+**对于资深开发者，我们会后续跟进开发工作，目前的版本是 **ChatGLM-4** 的语言模型版本，并且已经解决了SSE中文输入看不懂的问题，当然我们也希望其他的 开发商为本项目提供技术支持！ 先感谢您！**
 
 ----
 
@@ -240,7 +272,7 @@ String jsonRequestBody = String.format("{\"model\":\"%s\", \"messages\":[{\"role
 
 #### SSE 流式传输模型（可以正常使用！完美支持）
 
-这里我们将使用 **concurrent.Flow** 方法来解决SSE流处理的问题：
+这里我们将使用 **concurrent.Flow** 方法来解决**SSE**流处理的问题：
 
 ```
 public class SSESubscriber implements Flow.Subscriber<String> {
@@ -416,7 +448,7 @@ try {
 
 **同步请求**还算不错,运行的时候一般情况下都还算快，当然同步的缺点就是请求量过大可能会阻塞线程（`单线程`）
 
-这里直接说明关于处理信息这一块，这一块就是解析**JSON**也没有其他的东西了，示例代码：
+这里直接说明关于处理信息这一块，这一块就是解析 **JSON** 也没有其他的东西了，示例代码：
 
 ```
 try {
@@ -454,7 +486,7 @@ try {
 
 ## 4.结语
 >
-> 谢谢你打开我的项目，这是一个第三方开发的 ChatGLM SDK 开发项目，我也在尝试开发和更新这个项目，官方开发肯定比我个人开发要完善很多，当然我个人也会继续坚持开发下去，当使用效率的时候 官方比官方时间更好，我认为这个项目我认为这个项目是一次成功的学习经历。 我会不断更新这个项目。 也希望越来越多的人一起参与🚀 谢谢你们看到最后！😆👏
+> 谢谢你打开我的项目，这是一个自主开发的 ChatGLM Java SDK Maven 开发项目，我也在尝试开发和更新这个项目，官方开发肯定比我个人开发要完善很多，当然我个人也会继续坚持开发下去，当使用效率的时候 官方比官方时间更好，我认为这个项目我认为这个项目是一次成功的学习经历。 我会不断更新这个项目。 也希望越来越多的人一起参与🚀 谢谢你们看到最后！😆👏
 
 ----
 **最后的最后感恩 gson 的 jar 包开发人员**👩‍💻👨‍💻
