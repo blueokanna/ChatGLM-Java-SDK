@@ -77,7 +77,7 @@ public class ChatClient {
     public String getResponseMessage() {
         return ResponseMessage;
     }
-
+    
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         String apiKeyss = loadApiKey();
