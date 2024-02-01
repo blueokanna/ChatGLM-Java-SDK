@@ -134,6 +134,7 @@ public static void main(String[] args) {
             String userInput = scanner.nextLine();
 
              ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
+             chats.registerShutdownHook();                     //删除聊天的历史文件
              chats.SSEInvoke(userInput);                    //将你输入的问题赋值给流式请求的
              System.out.print(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
             System.out.println();
@@ -157,6 +158,7 @@ public static void main(String[] args) {
             String userInput = scanner.nextLine();
 
              ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
+             chats.registerShutdownHook();                     //删除聊天的历史文件
              chats.AsyncInvoke(userInput);                    //将你输入的问题赋值给异步请求的
              System.out.print(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
             System.out.println();
@@ -180,6 +182,7 @@ public static void main(String[] args) {
             String userInput = scanner.nextLine();
 
              ChatClient chats = new ChatClient(apiKeyss);      //初始 ChatClient （实例化）
+             chats.registerShutdownHook();                     //删除聊天的历史文件
              chats.SyncInvoke(userInput);                    //将你输入的问题赋值给同步请求的
              System.out.print(chats.getResponseMessage()); //打印出 ChatGLM 的回答内容
             System.out.println();
