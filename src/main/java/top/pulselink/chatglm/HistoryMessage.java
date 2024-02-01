@@ -17,24 +17,34 @@ public class HistoryMessage {
         this.historyFilePath = ConstantValue.HISTORY_FILE;
 
         createHistoryFileIfNotExists();
-
+        registerShutdownHook();
     }
 
     private void createHistoryFileIfNotExists() {
-        Path filePath = Paths.get(historyFilePath);
-        if (Files.exists(filePath)) {
-            try {
-                Files.delete(filePath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
+    Path filePath = Paths.get(historyFilePath);
+    if (Files.exists(filePath)) {
         try {
-            Files.createFile(filePath);
+            Files.delete(filePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    try {
+        Files.createFile(filePath);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Files.deleteIfExists(Paths.get(historyFilePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
     }
 
     public String addHistoryToFile(String role, String content, String... additionalParameters) {
