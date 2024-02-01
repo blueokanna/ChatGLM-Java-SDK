@@ -134,6 +134,7 @@ public static void main(String[] args) {
             String userInput = scanner.nextLine();
 
             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+            chats.registerShutdownHook();                     //Delete History File for Your Chatting
             chats.SSEInvoke(userInput);                     //Assign the question you entered to the synchronised request
             System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
             System.out.println();
@@ -157,6 +158,7 @@ public static void main(String[] args) {
             String userInput = scanner.nextLine();
 
             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+            chats.registerShutdownHook();                     //Delete History File for Your Chatting
             chats.AsyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
             System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
             System.out.println();
@@ -180,6 +182,7 @@ public static void main(String[] args) {
             String userInput = scanner.nextLine();
 
             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+            chats.registerShutdownHook();                     //Delete History File for Your Chatting
             chats.SyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
             System.out.print(chats.getResponseMessage());  //Print out ChatGLM's response
             System.out.println();
