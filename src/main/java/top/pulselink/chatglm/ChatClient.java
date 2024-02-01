@@ -5,10 +5,12 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import static top.pulselink.chatglm.ConstantValue.*;
 
-public class ChatClient{
+public class ChatClient {
 
     private static APIKeys apiKeys;
     private static String jwtToken;
@@ -62,6 +64,16 @@ public class ChatClient{
         }
     }
 
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Files.deleteIfExists(Paths.get(ConstantValue.HISTORY_FILE));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
+    }
+
     public String getResponseMessage() {
         return ResponseMessage;
     }
@@ -78,6 +90,8 @@ public class ChatClient{
         System.out.print("请输入对话:\n你: ");
         while (scanner.hasNext()) {
             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
+            chats.registerShutdownHook();
+
             String userInput = scanner.nextLine();
 
             chats.AsyncInvoke(userInput);                     //Assign the question you entered to the synchronised request

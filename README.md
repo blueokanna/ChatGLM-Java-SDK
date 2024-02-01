@@ -1,26 +1,26 @@
 # Zhipu AI Large Model Custom ChatGLM4-Java-SDK - [中文文档](https://github.com/AstralQuanta/ChatGLM-Java-SDK/blob/main/README_zh.md)
 >
-> ChatGLM4-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK17**.
+> ChatGLM4-Java-SDK, a Java-based open interface for customised spectral macromodels, developed by **Java** in the long term version of **JDK11**.
 ----
-## ⚠️Caution😟！The original **0.0.1** is no longer available! The Latest Version is 0.1.1.
+## :triangular_flag_on_post: The Latest Version is 0.1.1-Beta.
 
 **Java Maven Dependency (BlueChatGLM)**
 ```
 <dependency>
   <groupId>top.pulselink</groupId>
   <artifactId>bluechatglm</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.1-Beta</version>
 </dependency>
 ```
 
 **Java Gradle (BlueChatGLM)**
 ```
-implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1'
+implementation group: 'top.pulselink', name: 'bluechatglm', version: '0.1.1-Beta'
 ```
 
 **Java sbt (BlueChatGLM)**
 ```
-libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1"
+libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1-Beta"
 ```
 
 ## 1.Utils Tools
@@ -75,6 +75,40 @@ Saving Api key and store it in local file which call `chatglm_api_key` txt file:
         }
     }
 ```
+
+### 1.3 Save Chat Content file
+
+User chats and AI replies will be stored in `chatglm_history.txt` and chat content **txt** file will be deleted at the end of each session.
+
+```
+private void createHistoryFileIfNotExists() {
+    Path filePath = Paths.get(historyFilePath);
+    if (Files.exists(filePath)) {
+        try {
+            Files.delete(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    try {
+        Files.createFile(filePath);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Files.deleteIfExists(Paths.get(historyFilePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
+    }
+```
+
 
 ----
 
@@ -451,7 +485,11 @@ Here directly on the handling of information on this piece, this piece is parsin
 
 ## 4.Conclusion
 >
+<<<<<<< HEAD
 > Thank you for opening my project, this is a self-developed ChatGLM Java SDK development project, in order to solve the official SDK problems I am also working hard to develop and update this project, of course, I personally will continue to develop this project, I also adhere to the principle of open source more, so that everyone can enjoy my project. Finally, I hope more and more people will participate together 🚀 Thank you for seeing the end! 😆👏
+=======
+> Thank you for opening my project, this is a self-developed ChatGLM Java SDK development project, in order to solve the official SDK problems I am also working hard to develop and update this project, of course, I personally will continue to develop this project, I also adhere to the principle of open source. Finally, I hope that more and more people will participate together 🚀 Thank you for seeing this last! 😆👏
+>>>>>>> 2bff9858ecf334b005032edf3b7dc9f6cb9e1bff
 
 ----
 Last thanks to the jar developers of **gson** 👩‍💻👨‍💻

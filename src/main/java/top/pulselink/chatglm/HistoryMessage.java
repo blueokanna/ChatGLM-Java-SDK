@@ -17,7 +17,6 @@ public class HistoryMessage {
         this.historyFilePath = ConstantValue.HISTORY_FILE;
 
         createHistoryFileIfNotExists();
-
     }
 
     private void createHistoryFileIfNotExists() {
@@ -39,7 +38,12 @@ public class HistoryMessage {
     public String addHistoryToFile(String role, String content, String... additionalParameters) {
         String json = createJson(role, content, additionalParameters);
 
+<<<<<<< HEAD
         try (FileWriter fileWriter = new FileWriter(historyFilePath, true); BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+=======
+        try (FileWriter fileWriter = new FileWriter(historyFilePath, true);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+>>>>>>> 2bff9858ecf334b005032edf3b7dc9f6cb9e1bff
 
             bufferedWriter.write(json);
             bufferedWriter.write(",");
