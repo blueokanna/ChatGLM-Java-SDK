@@ -21,20 +21,29 @@ public class HistoryMessage {
 
     private void createHistoryFileIfNotExists() {
         Path filePath = Paths.get(historyFilePath);
-        if (!Files.exists(filePath)) {
+        if (Files.exists(filePath)) {
             try {
-                Files.createFile(filePath);
+                Files.delete(filePath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+        try {
+            Files.createFile(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     public String addHistoryToFile(String role, String content, String... additionalParameters) {
         String json = createJson(role, content, additionalParameters);
 
+<<<<<<< HEAD
+        try (FileWriter fileWriter = new FileWriter(historyFilePath, true); BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+=======
         try (FileWriter fileWriter = new FileWriter(historyFilePath, true);
                 BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+>>>>>>> 2bff9858ecf334b005032edf3b7dc9f6cb9e1bff
 
             bufferedWriter.write(json);
             bufferedWriter.write(",");
