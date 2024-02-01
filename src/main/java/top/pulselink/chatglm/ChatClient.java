@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Scanner;
 import static top.pulselink.chatglm.ConstantValue.*;
 
-public class ChatClient{
+public class ChatClient {
 
     private static APIKeys apiKeys;
     private static String jwtToken;
@@ -80,7 +80,7 @@ public class ChatClient{
             ChatClient chats = new ChatClient(apiKeyss);      //Initial ChatClient (Instantiation)
             String userInput = scanner.nextLine();
 
-            chats.SSEInvoke(userInput);                     //Assign the question you entered to the synchronised request
+            chats.AsyncInvoke(userInput);                     //Assign the question you entered to the synchronised request
             System.out.print("莉莉娅: " + chats.getResponseMessage());  //Print out ChatGLM's response
             System.out.println("\n");
             System.out.print("你: ");
