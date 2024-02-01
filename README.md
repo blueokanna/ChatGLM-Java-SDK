@@ -451,7 +451,7 @@ Here directly on the handling of information on this piece, this piece is parsin
 
 ## 4.Conclusion
 >
-> Thank you for opening my project, this is a third party development ChatGLM SDK development project, I am also trying to develop and update this project, the official development is certainly much more perfect than my personal development, of course, I personally will continue to insist on the development of the time when the use of the efficiency of the official better than the official time, I think that this project I think that this project is a successful learning experience. I will continue to update this project. I also hope that more and more people will participate together 🚀 Thank you for seeing it to the end!😆👏
+> Thank you for opening my project, this is a self-developed ChatGLM Java SDK development project, in order to solve the official SDK problems I am also working hard to develop and update this project, of course, I personally will continue to develop this project, I also adhere to the principle of open source more, so that everyone can enjoy my project. Finally, I hope more and more people will participate together 🚀 Thank you for seeing the end! 😆👏
 
 ----
 Last thanks to the jar developers of **gson** 👩‍💻👨‍💻
