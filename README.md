@@ -78,26 +78,23 @@ Saving Api key and store it in local file which call `chatglm_api_key` txt file:
 
 ### 1.3 Save Chat Content file
 
-User chats and AI replies will be stored in `chatglm_history.txt` and chat content **txt** file will be deleted at the end of each session.
+User chats and AI replies will be stored in `chatglm_history.txt`.
 
 ```
-private void createHistoryFileIfNotExists() {
-    Path filePath = Paths.get(historyFilePath);
-    if (Files.exists(filePath)) {
-        try {
-            Files.delete(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
+ private void createHistoryFileIfNotExists() {
+        Path filePath = Paths.get(historyFilePath);
+        if (!Files.exists(filePath)) {
+            try {
+                Files.createFile(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
+```
 
-    try {
-        Files.createFile(filePath);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
-
+chat content **txt** file will be deleted at the end of each session, exit the file it will delete history file automatically
+```
     private void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
