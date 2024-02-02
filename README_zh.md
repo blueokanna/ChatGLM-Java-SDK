@@ -4,6 +4,8 @@
 ----
 ##  :triangular_flag_on_post: 当前 **ChatGLM Java SDK** 最新版本为 0.1.1-Beta。
 
+支持版本： JDK 11+
+
 **Java Maven Dependency (BlueChatGLM)调用**
 ```
 <dependency>
@@ -79,29 +81,25 @@ libraryDependencies += "top.pulselink" % "bluechatglm" % "0.1.1-Beta"
 
 ### 1.3 保存聊天内容文件
 
-用户聊天和 **ChatGLM** 回复将保存在`chatglm_history.txt`中，聊天内容**txt**文件将在每个会话结束时删除。
+用户聊天和 **ChatGLM** 回复将保存在`chatglm_history.txt`中。
 ```
-private void createHistoryFileIfNotExists() {                //检查是否存在文件
-    Path filePath = Paths.get(historyFilePath);
-    if (Files.exists(filePath)) {
-        try {
-            Files.delete(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
+ private void createHistoryFileIfNotExists() {              //创建聊天内容文件
+        Path filePath = Paths.get(historyFilePath);
+        if (!Files.exists(filePath)) {                      //如果文件不存在
+            try {
+                Files.createFile(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
-
-    try {
-        Files.createFile(filePath);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
-
+```
+聊天内容**txt**文件将在每个会话结束时删除,强行退出并不会删除文件。
+```
     private void registerShutdownHook() {                      //关闭程序的时候删除历史聊天记录
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                Files.deleteIfExists(Paths.get(historyFilePath));
+                Files.deleteIfExists(Paths.get(historyFilePath));       //删除历史文件
             } catch (IOException e) {
                 e.printStackTrace();
             }
